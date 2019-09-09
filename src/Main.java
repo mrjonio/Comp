@@ -9,7 +9,7 @@ public class Main {
         String rootPath = Paths.get("").toAbsolutePath(). toString();
         String subPath = "/src/";
 
-        String file = rootPath + subPath + "pascal.lex";
+        String file = rootPath + subPath + "linguagemSimples.lex";
 
         File sourceCode = new File(file);
 
