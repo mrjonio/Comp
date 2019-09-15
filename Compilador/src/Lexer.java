@@ -17,7 +17,7 @@ public class Lexer {
         this.tokenAtual = new ArrayList();
     }
 
-    public void leCodigoFonte(String caminho) throws IOException {
+    public void lerCodigoFonte(String caminho) throws IOException {
         BufferedReader sc = new BufferedReader(new FileReader(caminho));
         while (sc.ready()){
             String linha = sc.readLine();
@@ -37,23 +37,23 @@ public class Lexer {
             if (aLinha == '#'){
                 break;
             } else{
-            if ((aLinha == ' ') || (aLinha == '[') || (aLinha == ']') || (aLinha == '>') || (aLinha == '(') || (aLinha == ')') || (aLinha == '{') || (aLinha == '}')
-                    || (aLinha == '=') || (aLinha == ';') || (aLinha == '<') || (aLinha == '+') || (aLinha == '*') || (aLinha == '-') || (aLinha == ',') || aLinha == '\n') {
-                    char[] tokenPego = new char[tamAtual];
-                    for (int j = 0; j < tamAtual; j++) {
-                        tokenPego[j] = tokenAtual.get(j).toString().charAt(0);
+            if ((aLinha == ' ') || (aLinha == '(') || (aLinha == ')') || (aLinha == '{') || (aLinha == '}')
+                    || (aLinha == ';') ||  (aLinha == ',') || aLinha == '\n') {
+                    char[] tokenPego = new char[this.tamAtual];
+                    for (int j = 0; j < this.tamAtual; j++) {
+                        tokenPego[j] = this.tokenAtual.get(j).toString().charAt(0);
                     }
                     String tokenPegoString = String.copyValueOf(tokenPego);
                     Token tokenExcept = new Token((Character.toString(aLinha)), "<" + Character.toString(aLinha) + ", ", this.line, Character.toString(aLinha));
-                    if (tamAtual > 0) {
-                        String tipo = identificaLexema(tokenPegoString);
+                    if (this.tamAtual > 0) {
+                        String tipo = identificarLexema(tokenPegoString);
                         Token tokenFinal = new Token(tokenPegoString, tipo, this.line, tokenPegoString);
-                        tokens.add(tokenFinal);
-                        tokenAtual.clear();
-                        tamAtual = 0;
+                        this.tokens.add(tokenFinal);
+                        this.tokenAtual.clear();
+                        this.tamAtual = 0;
                     }
                     if (aLinha != ' ') {
-                        tokens.add(tokenExcept);
+                        this.tokens.add(tokenExcept);
                     }
             } else {
                 if(aLinha != '\n' && aLinha != ' ') {
@@ -65,7 +65,7 @@ public class Lexer {
         }
     }
 
-    private String identificaLexema(String tokenAtualIdentificado){
+    private String identificarLexema(String tokenAtualIdentificado){
         switch (tokenAtualIdentificado){
             case "if":
                 return "<if, ";
@@ -97,12 +97,31 @@ public class Lexer {
                 return "<then, ";
             case "not":
                 return "<not, ";
-            case "and":
-                return "<and, ";
+            case "+":
+                return "<adding operator, ";
+            case "-":
+                return "<adding operator, ";
             case "or":
-                return "<or, ";
+                return "<adding operator, ";
+            case "*":
+                return "<multiplying operator, ";
+            case "and":
+                return "<multiplying operator, ";
             case "div":
-                return "<div, ";
+                return "<multiplying operator, ";
+            case "=":
+                return "<relational operator, ";
+            case "<>":
+                return "<relational operator, ";
+            case "<":
+                return "<relational operator, ";
+            case "<=":
+                return "<relational operator, ";
+            case ">=":
+                return "<relational operator, ";
+            case ">":
+                return "<relational operator, ";
+
                 default:
                     if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
                             tokenAtualIdentificado.charAt(0) == '3' || tokenAtualIdentificado.charAt(0) == '4' || tokenAtualIdentificado.charAt(0) == '5' ||
@@ -112,10 +131,12 @@ public class Lexer {
                     }else {
                         return "<identifier, ";
                     }
+
         }
+
     }
 
     public ArrayList<Token> getTokens() {
-        return tokens;
+        return this.tokens;
     }
 }
