@@ -98,29 +98,29 @@ public class Lexer {
             case "not":
                 return "<not, ";
             case "+":
-                return "<adding operator, ";
+                return "<+ operator, ";
             case "-":
-                return "<adding operator, ";
+                return "<- operator, ";
             case "or":
-                return "<adding operator, ";
+                return "<or operator, ";
             case "*":
-                return "<multiplying operator, ";
+                return "<* operator, ";
             case "and":
-                return "<multiplying operator, ";
+                return "<and operator, ";
             case "div":
-                return "<multiplying operator, ";
+                return "<div operator, ";
             case "=":
-                return "<relational operator, ";
+                return "< = operator, ";
             case "<>":
-                return "<relational operator, ";
+                return "< <> operator, ";
             case "<":
-                return "<relational operator, ";
+                return "< < operator, ";
             case "<=":
-                return "<relational operator, ";
+                return "< <= operator, ";
             case ">=":
-                return "<relational operator, ";
+                return "< >= operator, ";
             case ">":
-                return "<relational operator, ";
+                return "< > operator, ";
 
                 default:
                     if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
