@@ -1,6 +1,8 @@
 var x = 1;
 while (x < y){
-if(x > y){
+a - b;
+if(x > y and a <> b){
 write acabou;
 }
+return;
 }
