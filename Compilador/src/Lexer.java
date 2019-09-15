@@ -45,15 +45,16 @@ public class Lexer {
                     String tokenPegoString = String.copyValueOf(tokenPego);
                     if (this.tamAtual > 0) {
                         String tipo = identificarLexema(tokenPegoString);
-                        String pos = matriz.getLinhaAtual() + "," + matriz.getColunaAtual();
-                        Token tokenFinal = new Token(tokenPegoString, tipo, this.line, pos);
+                        Token tokenFinal = new Token(tokenPegoString, tipo, this.line, tokenPegoString, matriz.getLinhaAtual(),
+                                matriz.getColunaAtual());
                         this.matriz.alocaToken(tokenFinal);
                         this.tokenAtual.clear();
                         this.tamAtual = 0;
                     }
                     if (aLinha != ' ') {
                         String pos = matriz.getLinhaAtual() + "," + matriz.getColunaAtual();
-                        Token tokenExcept = new Token((Character.toString(aLinha)), "<" + Character.toString(aLinha) + ", ", this.line, pos);
+                        Token tokenExcept = new Token((Character.toString(aLinha)), "<" + Character.toString(aLinha) + ", ",
+                                this.line, Character.toString(aLinha), matriz.getLinhaAtual(), matriz.getColunaAtual());
                         this.matriz.alocaToken(tokenExcept);
                     }
                 } else {
