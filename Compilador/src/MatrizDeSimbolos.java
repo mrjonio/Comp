@@ -6,24 +6,23 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
     public MatrizDeSimbolos() {
         this.linha = 0;
         this.coluna = 0;
-        this.matriz = new Token[100][100];
+        this.matriz = new Token[20][20];
 
     }
 
     @Override
     public void alocarToken(Token tokenASerSalvo) {
 
-        if (this.linha >= 100) {
+        if (this.linha >= this.matriz.length) {
             System.out.println("ACABOU O ESPACO DA MATRIZ");
         } else {
-            this.matriz[this.linha][this.coluna] = tokenASerSalvo;
-            this.coluna++;
-
-            if (this.coluna >= 100) {
+            if (this.coluna >= this.matriz.length) {
                 this.coluna = 0;
                 this.linha++;
 
             }
+            this.matriz[this.linha][this.coluna] = tokenASerSalvo;
+            this.coluna++;
         }
 
     }

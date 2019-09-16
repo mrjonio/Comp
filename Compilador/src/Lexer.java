@@ -14,7 +14,12 @@ public class Lexer {
         this.line = 0;
         this.tamAtual = 0;
         this.tokenAtual = new ArrayList();
+        this.matriz = new MatrizDeSimbolos();
 
+    }
+
+    public IMatrizDeSimbolos getMatriz() {
+        return matriz;
     }
 
     public void lerCodigoFonte(String caminho) throws IOException {
