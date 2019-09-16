@@ -14,6 +14,7 @@ public class Lexer {
         this.line = 0;
         this.tamAtual = 0;
         this.tokenAtual = new ArrayList();
+
     }
 
     public void lerCodigoFonte(String caminho) throws IOException {
@@ -45,17 +46,17 @@ public class Lexer {
                     String tokenPegoString = String.copyValueOf(tokenPego);
                     if (this.tamAtual > 0) {
                         String tipo = identificarLexema(tokenPegoString);
-                        Token tokenFinal = new Token(tokenPegoString, tipo, this.line, tokenPegoString, matriz.getLinhaAtual(),
-                                matriz.getColunaAtual());
-                        this.matriz.alocaToken(tokenFinal);
+                        Token tokenFinal = new Token(tokenPegoString, tipo, this.line, tokenPegoString, this.matriz.getLinhaAtual(),
+                                this.matriz.getColunaAtual());
+                        this.matriz.alocarToken(tokenFinal);
                         this.tokenAtual.clear();
                         this.tamAtual = 0;
                     }
                     if (aLinha != ' ') {
-                        String pos = matriz.getLinhaAtual() + "," + matriz.getColunaAtual();
+                        String pos = this.matriz.getLinhaAtual() + "," + this.matriz.getColunaAtual();
                         Token tokenExcept = new Token((Character.toString(aLinha)), "<" + Character.toString(aLinha) + ", ",
-                                this.line, Character.toString(aLinha), matriz.getLinhaAtual(), matriz.getColunaAtual());
-                        this.matriz.alocaToken(tokenExcept);
+                                this.line, Character.toString(aLinha), this.matriz.getLinhaAtual(), this.matriz.getColunaAtual());
+                        this.matriz.alocarToken(tokenExcept);
                     }
                 } else {
                     if(aLinha != '\n' && aLinha != ' ') {
