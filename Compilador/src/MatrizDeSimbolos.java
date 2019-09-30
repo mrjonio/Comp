@@ -42,4 +42,14 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
         return this.coluna;
     }
 
+    @Override
+    public int getLinhaMax() {
+        return matriz[0].length;
+    }
+
+    @Override
+    public int getColunaMax() {
+        return matriz.length;
+    }
+
 }

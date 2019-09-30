@@ -3,4 +3,6 @@ public interface IMatrizDeSimbolos {
     void alocarToken(Token tokenASerSalvo);
     int getLinhaAtual();
     int getColunaAtual();
+    int getLinhaMax();
+    int getColunaMax();
 }

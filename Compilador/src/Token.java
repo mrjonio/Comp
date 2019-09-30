@@ -43,6 +43,10 @@ public class Token {
         this.colunaMatriz = colunaMatriz;
     }
 
+    public void setValor(String valor) {
+        this.valor = valor;
+    }
+
     public String getValor() {
         return valor;
     }
