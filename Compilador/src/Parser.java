@@ -24,7 +24,7 @@ public class Parser {
 
 
     private void analisaRegra(String regraAtual){
-        switch (regraAtual){
+        switch (regraAtual) {
             case "<program>":
                 pilha.push(".");
                 pilha.push("<block>");
@@ -33,7 +33,7 @@ public class Parser {
                 pilha.push("program");
                 break;
             case "program":
-                if(lookAhead("program")){
+                if (lookAhead("program")) {
                     incrementaPosToken();
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
@@ -61,14 +61,14 @@ public class Parser {
             case "<letter_or_digit>":
                 if (!isPalavraReservada(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor())) {
                     boolean flag = true;
-                    for (int i = 0; i < matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().length(); i++){
+                    for (int i = 0; i < matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().length(); i++) {
                         if (!(isALetter(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(i)))
-                        && !(isADigit(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(i)))){
+                                && !(isADigit(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(i)))) {
                             flag = false;
                             break;
                         }
                     }
-                    if (flag){
+                    if (flag) {
                         incrementaPosToken();
                     } else {
                         System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOO");
@@ -76,7 +76,7 @@ public class Parser {
                 }
                 break;
             case ";":
-                if (lookAhead(";")){
+                if (lookAhead(";")) {
                     incrementaPosToken();
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOO");
@@ -100,41 +100,41 @@ public class Parser {
                 pilha.push("begin");
                 break;
             case "begin":
-                if(lookAhead("begin")){
+                if (lookAhead("begin")) {
                     incrementaPosToken();
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOO");
                 }
                 break;
             case "<statement>":
-                if (lookAhead("begin") || lookAhead("while") || lookAhead("if")){
+                if (lookAhead("begin") || lookAhead("while") || lookAhead("if")) {
                     pilha.push("<structured_statement>");
                 } else {
                     pilha.push("<simple_statement>");
                 }
                 break;
             case "<compound_block>":
-                if (lookAhead(";")){
+                if (lookAhead(";")) {
                     pilha.push("<statement>");
                     incrementaPosToken();
                 } //Else: <empty>, ou seja, nada rs
                 break;
             case "<optional_compound>":
-                if (lookAhead("return")){
+                if (lookAhead("return")) {
                     pilha.push("<return_statement>");
                     incrementaPosToken();
                 } //Else: <empty>, só retira do topo da pilha mesmo
                 break;
             case "end":
-                if (lookAhead("end")){
+                if (lookAhead("end")) {
                     incrementaPosToken();
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOO");
                 }
                 break;
             case "<variable_declaration_part>":
-                if (lookAhead("Integer") || lookAhead("Boolean") ||lookAhead("true") ||
-                        lookAhead("false")){
+                if (lookAhead("Integer") || lookAhead("Boolean") || lookAhead("true") ||
+                        lookAhead("false")) {
                     pilha.push(";");
                     pilha.push("<identifier>");
                     pilha.push("<predefined_identifier>");
@@ -156,7 +156,7 @@ public class Parser {
                 pilha.push("<block>");
                 break;
             case "procedure":
-                if (lookAhead("procedure")){
+                if (lookAhead("procedure")) {
                     incrementaPosToken();
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOO");
@@ -164,14 +164,13 @@ public class Parser {
 
                 break;
             case "<simple_statement>":
-                if (lookAhead("write")){
+                if (lookAhead("write")) {
                     pilha.push("<write_statement>");
                 } else {
-                    if (lookAhead("break") || lookAhead("continue")){
+                    if (lookAhead("break") || lookAhead("continue")) {
                         pilha.push("<detour_statement>");
-                    }
-                    else {
-                        if (lookAhead("call")){
+                    } else {
+                        if (lookAhead("call")) {
                             pilha.push("<procedure_statement>");
                         } else {
                             pilha.push("<assignment_statement>");
@@ -191,7 +190,7 @@ public class Parser {
                 break;
             case "<detour_statement>":
                 pilha.push(";");
-                if (lookAhead("break")){
+                if (lookAhead("break")) {
                     pilha.push("break");
                 } else {
                     pilha.push("continue");
@@ -213,16 +212,16 @@ public class Parser {
                 pilha.push(";");
                 pilha.push(")");
                 pilha.push("<aspas>");
-                pilha.push("<constant>");
+                pilha.push("<variable>");
                 pilha.push("<aspas>");
                 pilha.push("(");
                 pilha.push("write");
                 break;
             case "<structured_statement>":
-                if (lookAhead("begin")){
+                if (lookAhead("begin")) {
                     pilha.push("<compound_statement>");
                 } else {
-                    if (lookAhead("if")){
+                    if (lookAhead("if")) {
                         pilha.push("<if_statement>");
                     } else {
                         pilha.push("<else_statement>");
@@ -237,7 +236,7 @@ public class Parser {
                 pilha.push("if");
                 break;
             case "<else_statement>":
-                if (lookAhead("else")){
+                if (lookAhead("else")) {
                     pilha.push("<statement>");
                     pilha.push("else");
                 } //Else: <empty>
@@ -249,6 +248,135 @@ public class Parser {
                 pilha.push("while");
                 break;
 
+            //Antônio//
+            case "<expression>":
+                pilha.push("<simple_expression>");
+                pilha.push("<complement_expression>");
+                break;
+            case "<complement_expression>":
+                pilha.push("<relational_operator>");
+                pilha.push("<simple_expression>");
+                break;// Else: <empty>
+            case "<simple_expression>":
+                pilha.push("<term>");
+                pilha.push("<adding_operator1>");
+                break;
+            case "<adding_operator1>":
+                if (lookAhead("+") || lookAhead("-") || lookAhead("or")) {
+                    pilha.push("<adding_operator>");
+                    pilha.push("<term>");
+                } else {
+                    pilha.push("<simple_expression>")
+                }
+                break;// Else: <empty>
+            case "<term>":
+                pilha.push("<factor>");
+                pilha.push("<multiplying_operator1>");
+                break;
+            case "<multiplying_operator1>":
+                if (lookAhead("*") || lookAhead("div") || lookAhead("and")) {
+                    pilha.push("<multiplying_operator>");
+                    pilha.push("<factor>");
+                } else {
+                    pilha.push("<term>")
+                }
+                break;// Else: <empty>
+            case "<factor>":
+                if (lookAhead("(")) {
+                    pilha.push("(");
+                    incrementaPosToken();
+                    pilha.push("<expression>");
+                    pilha.push(")");
+                    incrementaPosToken();
+                } else if (lookAhead("not")) {
+                    pilha.push("not");
+                    incrementaPosToken();
+                    pilha.push("<factor>");
+                } else {
+                    pilha.push("<variable>");
+                }
+                break;
+
+
+            case "<relational_operator>":
+                if (lookAhead("=")) {
+                    pilha.push("=");
+                    incrementaPosToken();
+                }
+                if (lookAhead("<>")) {
+                    pilha.push("<>");
+                    incrementaPosToken();
+                }
+                if (lookAhead("<")) {
+                    pilha.push("<");
+                    incrementaPosToken();
+                }
+                if (lookAhead(">")) {
+                    pilha.push(">");
+                    incrementaPosToken();
+                }
+                if (lookAhead("<=")) {
+                    pilha.push("<=");
+                    incrementaPosToken();
+                }
+                if (lookAhead(">=")) {
+                    pilha.push(">=");
+                    incrementaPosToken();
+                }
+                break;
+            case "<adding_operator>":
+                if (lookAhead("+")) {
+                    pilha.push("+");
+                    incrementaPosToken();
+                }
+                if (lookAhead("-")) {
+                    pilha.push("-");
+                    incrementaPosToken();
+                }
+                if (lookAhead("or")) {
+                    pilha.push("or");
+                    incrementaPosToken();
+                }
+                break;
+            case "<multiplying_operator>":
+                if (lookAhead("*")) {
+                    pilha.push("*");
+                    incrementaPosToken();
+                }
+                if (lookAhead("div")) {
+                    pilha.push("div");
+                    incrementaPosToken();
+                }
+                if (lookAhead("and")) {
+                    pilha.push("and");
+                    incrementaPosToken();
+                }
+                break;
+            case "<variable>":
+                pilha.push("<identifier>");
+                break;
+            case "<aspas>":
+                pilha.push("\"");
+                incrementaPosToken();
+                break;
+            case "<predefined_identifier>":
+                if (lookAhead("Integer")) {
+                    pilha.push("Integer");
+                    incrementaPosToken();
+                }
+                if (lookAhead("Boolean")) {
+                    pilha.push("Boolean");
+                    incrementaPosToken();
+                }
+                if (lookAhead("true")) {
+                    pilha.push("true");
+                    incrementaPosToken();
+                }
+                if (lookAhead("false")) {
+                    pilha.push("false");
+                    incrementaPosToken();
+                }
+                break;
         }
     }
 
@@ -297,6 +425,16 @@ public class Parser {
                 valor.equals("end") || valor.equals("write") || valor.equals("procedure") || valor.equals("program") || valor.equals("break") ||
                 valor.equals("continue") || valor.equals("return") || valor.equals("Boolean") || valor.equals("Integer") || valor.equals("true") ||
                 valor.equals("false") || valor.equals("call");
+    }
+
+    private boolean isSpecialSymbol(String valor){
+        return valor.equals("div") || valor.equals("or") || valor.equals("and") || valor.equals("not") || valor.equals("if") ||
+                valor.equals("then") || valor.equals("else") || valor.equals("+") || valor.equals("-") || valor.equals("*") || valor.equals("=") ||
+                valor.equals("<") || valor.equals(">") || valor.equals("<=") || valor.equals(">=") || valor.equals("(") || valor.equals(")") ||
+                valor.equals(",") || valor.equals(";") || valor.equals(":") || valor.equals("do") || valor.equals("begin") || valor.equals("end") ||
+                valor.equals("write") || valor.equals("procedure") || valor.equals("program") || valor.equals("break") || valor.equals("continue") ||
+                valor.equals("return") || valor.equals("call");
+        ;
     }
 
     private boolean isADigit(char caractere){
