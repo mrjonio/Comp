@@ -250,54 +250,52 @@ public class Parser {
 
             //Antônio//
             case "<expression>":
-                pilha.push("<simple_expression>");
                 pilha.push("<complement_expression>");
+                pilha.push("<simple_expression>");
                 break;
             case "<complement_expression>":
-                pilha.push("<relational_operator>");
                 pilha.push("<simple_expression>");
+                pilha.push("<relational_operator>");
                 break;// Else: <empty>
             case "<simple_expression>":
-                pilha.push("<term>");
                 pilha.push("<adding_operator1>");
+                pilha.push("<term>");
                 break;
             case "<adding_operator1>":
                 if (lookAhead("+") || lookAhead("-") || lookAhead("or")) {
-                    pilha.push("<adding_operator>");
                     pilha.push("<term>");
+                    pilha.push("<adding_operator>");
                 } else {
                     pilha.push("<simple_expression>")
                 }
                 break;// Else: <empty>
             case "<term>":
-                pilha.push("<factor>");
                 pilha.push("<multiplying_operator1>");
+                pilha.push("<factor>");
                 break;
             case "<multiplying_operator1>":
                 if (lookAhead("*") || lookAhead("div") || lookAhead("and")) {
-                    pilha.push("<multiplying_operator>");
                     pilha.push("<factor>");
+                    pilha.push("<multiplying_operator>");
                 } else {
                     pilha.push("<term>")
                 }
                 break;// Else: <empty>
             case "<factor>":
                 if (lookAhead("(")) {
-                    pilha.push("(");
-                    incrementaPosToken();
-                    pilha.push("<expression>");
                     pilha.push(")");
                     incrementaPosToken();
+                    pilha.push("<expression>");
+                    pilha.push("(");
+                    incrementaPosToken();
                 } else if (lookAhead("not")) {
+                    pilha.push("<factor>");
                     pilha.push("not");
                     incrementaPosToken();
-                    pilha.push("<factor>");
                 } else {
                     pilha.push("<variable>");
                 }
                 break;
-
-
             case "<relational_operator>":
                 if (lookAhead("=")) {
                     pilha.push("=");
