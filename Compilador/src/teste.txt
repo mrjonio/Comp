@@ -1,8 +1,1 @@
-var x = 1;
-while (x < y){
-a - b;
-if(x > y and a <> b){
-write acabou;
-}
-return;
-}
+program teste; Integer a = 1 ; Integer b = 0 ; procedure main ( Integer xou, Boolean nao ) ; begin : while a < b do a = a + a ; if a = b then write (" aaaaaaaa ") ; else write(" aaaaaa ") ; . $

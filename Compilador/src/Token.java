@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Token {
     private String nome;
     private String lexema;
@@ -5,6 +7,7 @@ public class Token {
     private String valor;
     private int linhaMatriz;
     private int colunaMatriz;
+    private ArrayList escopo;
 
     public Token(String nome, String lexema, int linha, String valor, int linhaMatriz, int colunaMatriz) {
         this.nome = nome;
@@ -13,6 +16,7 @@ public class Token {
         this.valor = valor;
         this.linhaMatriz = linhaMatriz;
         this.colunaMatriz = colunaMatriz;
+        this.escopo = new ArrayList();
     }
 
     public String getNome() {
@@ -50,6 +54,7 @@ public class Token {
     public String getValor() {
         return valor;
     }
+
 
 
 }

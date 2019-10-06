@@ -11,6 +11,7 @@ public class Parser {
         this.colunaAtual = colunaAtual;
         this.pilha = new Stack<String>();
         this.matrizDeSimbolos = matrizDeSimbolos;
+        iniciar();
     }
 
     private void iniciar(){
@@ -24,6 +25,7 @@ public class Parser {
 
 
     private void analisaRegra(String regraAtual){
+        System.out.println( regraAtual + " " + pilha.peek() + " " + this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor());
         switch (regraAtual) {
             case "<program>":
                 pilha.push(".");
@@ -40,7 +42,9 @@ public class Parser {
                 }
                 break;
             case "<identifier>":
-                pilha.push("<letter_or_digit>");
+                if (this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().length() > 1) {
+                    pilha.push("<letter_or_digit>");
+                }
                 pilha.push("<letter>");
                 break;
             case "<letter>":
@@ -59,19 +63,18 @@ public class Parser {
                 }
                 break;
             case "<letter_or_digit>":
+                boolean flag = true;
                 if (!isPalavraReservada(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor())) {
-                    boolean flag = true;
                     for (int i = 0; i < matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().length(); i++) {
                         if (!(isALetter(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(i)))
                                 && !(isADigit(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(i)))) {
                             flag = false;
                             break;
                         }
-                    }
-                    if (flag) {
+                    } if(flag) {
                         incrementaPosToken();
                     } else {
-                        System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOO");
+                        //Else: empty
                     }
                 }
                 break;
@@ -87,16 +90,18 @@ public class Parser {
                 pilha.push("<procedure_declaration_part>");
                 pilha.push("<variable_declaration_part>");
                 break;
-            case "<statement_part":
+            case "<statement_part>":
                 if (lookAhead("begin")) {
-                    pilha.push(" <compound_statement>");
+                    pilha.push("<block>");
+                    pilha.push("<compound_statement>");
                 } //Else: <Empty>
                 break;
             case "<compound_statement>":
                 pilha.push("end");
                 pilha.push("<optional_compound>");
-                pilha.push("<compound_block");
+                pilha.push("<compound_block>");
                 pilha.push("<statement>");
+                pilha.push(":");
                 pilha.push("begin");
                 break;
             case "begin":
@@ -135,7 +140,10 @@ public class Parser {
             case "<variable_declaration_part>":
                 if (lookAhead("Integer") || lookAhead("Boolean") || lookAhead("true") ||
                         lookAhead("false")) {
+                    pilha.push("<block>");
                     pilha.push(";");
+                    pilha.push("<identifier_or_value>");
+                    pilha.push("=");
                     pilha.push("<identifier>");
                     pilha.push("<predefined_identifier>");
                     // TEM QUE ADICIONAR O ESCOPO + VALOR SEMÂNTICO!!!!!!
@@ -143,6 +151,7 @@ public class Parser {
                 break;
             case "<procedure_declaration_part>":
                 if (lookAhead("procedure")) {
+                    pilha.push("<block>");
                     pilha.push(";");
                     pilha.push("<procedure_declaration>");
                     pilha.push(")");
@@ -180,11 +189,11 @@ public class Parser {
                 break;
             case "<parameters>":
                 pilha.push("<parameter>");
-                pilha.push("<variable_declaration_part>");
+                pilha.push("<variable_parameter>");
                 break;
             case "<parameter>":
                 if (lookAhead(",")) {
-                    pilha.push("<variable_declaration_part>");
+                    pilha.push("<variable_parameter>");
                     pilha.push(",");
                 } //Else: <Empty>
                 break;
@@ -199,7 +208,7 @@ public class Parser {
             case "<assignment_statement>":
                 pilha.push("<expression>");
                 pilha.push("=");
-                pilha.push("<variable>");
+                pilha.push("<identifier>");
                 break;
             case "<procedure_statement>":
                 pilha.push("<procedure_identifier>");
@@ -212,7 +221,7 @@ public class Parser {
                 pilha.push(";");
                 pilha.push(")");
                 pilha.push("<aspas>");
-                pilha.push("<variable>");
+                pilha.push("<identifier>");
                 pilha.push("<aspas>");
                 pilha.push("(");
                 pilha.push("write");
@@ -224,7 +233,7 @@ public class Parser {
                     if (lookAhead("if")) {
                         pilha.push("<if_statement>");
                     } else {
-                        pilha.push("<else_statement>");
+                        pilha.push("<while_statement>");
                     }
                 }
                 break;
@@ -254,108 +263,91 @@ public class Parser {
                 pilha.push("<simple_expression>");
                 break;
             case "<complement_expression>":
-                pilha.push("<simple_expression>");
-                pilha.push("<relational_operator>");
-                break;// Else: <empty>
+                if (lookAhead("=") || lookAhead("<>") || lookAhead("<") || lookAhead("<=") ||
+                lookAhead(">=") || lookAhead(">")){
+                    pilha.push("<simple_expression>");
+                    pilha.push("<relational_operator>");
+                } // Else: <empty>
+                 break;//
             case "<simple_expression>":
                 pilha.push("<adding_operator1>");
-                pilha.push("<term>");
-                break;
-            case "<adding_operator1>":
-                if (lookAhead("+") || lookAhead("-") || lookAhead("or")) {
-                    pilha.push("<term>");
-                    pilha.push("<adding_operator>");
-                } else {
-                    pilha.push("<simple_expression>")
-                }
-                break;// Else: <empty>
-            case "<term>":
+                pilha.push("<factor>");
                 pilha.push("<multiplying_operator1>");
                 pilha.push("<factor>");
                 break;
+            case "<adding_operator1>":
+                if (lookAhead("+") || lookAhead("-") || lookAhead("or")) {
+                    pilha.push("<simple_expression>");
+                    pilha.push("<adding_operator>");
+                    pilha.push("<factor>");
+                    pilha.push("<adding_operator>");
+                }  // Else: <empty>
+                break;
             case "<multiplying_operator1>":
                 if (lookAhead("*") || lookAhead("div") || lookAhead("and")) {
+                    pilha.push("<simple_expression>");
+                    pilha.push("<multiplying_operator>");
                     pilha.push("<factor>");
                     pilha.push("<multiplying_operator>");
-                } else {
-                    pilha.push("<term>")
-                }
-                break;// Else: <empty>
+                } // Else: <empty>
+                break;
             case "<factor>":
                 if (lookAhead("(")) {
                     pilha.push(")");
-                    incrementaPosToken();
                     pilha.push("<expression>");
                     pilha.push("(");
-                    incrementaPosToken();
                 } else if (lookAhead("not")) {
                     pilha.push("<factor>");
                     pilha.push("not");
-                    incrementaPosToken();
-                } else {
-                    pilha.push("<variable>");
-                }
+                } else if (!isPalavraReservada(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
+                isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))){
+                    pilha.push("<identifier>");
+                } //Else: empty
                 break;
             case "<relational_operator>":
                 if (lookAhead("=")) {
                     pilha.push("=");
-                    incrementaPosToken();
                 }
                 if (lookAhead("<>")) {
                     pilha.push("<>");
-                    incrementaPosToken();
                 }
                 if (lookAhead("<")) {
                     pilha.push("<");
-                    incrementaPosToken();
                 }
                 if (lookAhead(">")) {
                     pilha.push(">");
-                    incrementaPosToken();
                 }
                 if (lookAhead("<=")) {
                     pilha.push("<=");
-                    incrementaPosToken();
                 }
                 if (lookAhead(">=")) {
                     pilha.push(">=");
-                    incrementaPosToken();
-                }
+                } //Else: empty
                 break;
             case "<adding_operator>":
                 if (lookAhead("+")) {
                     pilha.push("+");
-                    incrementaPosToken();
                 }
                 if (lookAhead("-")) {
                     pilha.push("-");
-                    incrementaPosToken();
                 }
                 if (lookAhead("or")) {
                     pilha.push("or");
-                    incrementaPosToken();
-                }
+                } //Else: empty
                 break;
             case "<multiplying_operator>":
                 if (lookAhead("*")) {
                     pilha.push("*");
-                    incrementaPosToken();
                 }
                 if (lookAhead("div")) {
                     pilha.push("div");
-                    incrementaPosToken();
                 }
                 if (lookAhead("and")) {
                     pilha.push("and");
-                    incrementaPosToken();
-                }
-                break;
-            case "<variable>":
-                pilha.push("<identifier>");
+                } //Else: empty
                 break;
             case "<aspas>":
                 pilha.push("\"");
-                incrementaPosToken();
                 break;
             case "<predefined_identifier>":
                 if (lookAhead("Integer")) {
@@ -366,15 +358,241 @@ public class Parser {
                     pilha.push("Boolean");
                     incrementaPosToken();
                 }
-                if (lookAhead("true")) {
-                    pilha.push("true");
-                    incrementaPosToken();
-                }
-                if (lookAhead("false")) {
-                    pilha.push("false");
-                    incrementaPosToken();
+                break;
+            case "<identifier_or_value>":
+                if (lookAhead("true") || lookAhead("false")){
+                    pilha.push("<compl_idv>");
+                    pilha.push("<boolean_value>");
+                } else{
+                    pilha.push("<simple_expression>");
+                    pilha.push("<letter_or_digit>");
                 }
                 break;
+            case "<compl_indv>":
+                if (lookAhead("+") || lookAhead("or")){
+                    pilha.push("<identifier_or_value>");
+                    pilha.push("<adding_operator>");
+                } else if(lookAhead("*") || lookAhead("and")){
+                    pilha.push("<identifier_or_value>");
+                    pilha.push("<multiplying_operator>");
+                } //Else: empty
+                break;
+            case "<boolean_value>":
+                if (lookAhead("true")){
+                    pilha.push("true");
+                } else if(lookAhead("false")){
+                    pilha.push("false");
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOO");
+                }
+            case "(":
+                if (lookAhead("(")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ")":
+                if (lookAhead(")")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "+":
+                if (lookAhead("+")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "-":
+                if (lookAhead("-")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "=":
+                if (lookAhead("=")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "*":
+                if (lookAhead("*")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "div":
+                if (lookAhead("div")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "or":
+                if (lookAhead("or")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "and":
+                if (lookAhead("and")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ">":
+                if (lookAhead(">")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ">=":
+                if (lookAhead(">=")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "<=":
+                if (lookAhead("<=")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "<>":
+                if (lookAhead("<>")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "<":
+                if (lookAhead("<")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "\"":
+                if (lookAhead("\"")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ":":
+                if (lookAhead(":")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "while":
+                if (lookAhead("while")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "do":
+                if (lookAhead("do")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "if":
+                if (lookAhead("if")){
+                    incrementaPosToken();
+                } else {
+                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+            break;
+            case "then":
+                if (lookAhead("then")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "write":
+                if (lookAhead("write")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "else":
+                if (lookAhead("else")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ".":
+                if (lookAhead(".")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "call":
+                if (lookAhead("call")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "return":
+                if (lookAhead("return")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "continue":
+                if (lookAhead("continue")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "break":
+                if (lookAhead("break")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "not":
+                if (lookAhead("not")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case ",":
+                if (lookAhead(",")){
+                    incrementaPosToken();
+                } else {
+                    System.out.println("ERROOOOOOOOOOOOOOOOOOOOO");
+                }
+                break;
+            case "<variable_parameter>":
+                if (lookAhead("Integer") || lookAhead("Boolean")){
+                    pilha.push("<identifier>");
+                    pilha.push("<predefined_identifier>");
+                 } //Else: empty
         }
     }
 
@@ -396,6 +614,7 @@ public class Parser {
         while (!atual.equals("$")){
             analisaRegra(atual);
             atual = pilha.pop();
+
         }
         if (lookAhead("$")){
             System.out.println("SUCESSO!");
@@ -432,7 +651,6 @@ public class Parser {
                 valor.equals(",") || valor.equals(";") || valor.equals(":") || valor.equals("do") || valor.equals("begin") || valor.equals("end") ||
                 valor.equals("write") || valor.equals("procedure") || valor.equals("program") || valor.equals("break") || valor.equals("continue") ||
                 valor.equals("return") || valor.equals("call");
-        ;
     }
 
     private boolean isADigit(char caractere){
@@ -441,7 +659,9 @@ public class Parser {
     }
 
     private boolean lookAhead(String terminal){
-        return matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().equals(terminal);
+        if (matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual) != null) {
+            return matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().equals(terminal);
+        } return false;
     }
 
 }

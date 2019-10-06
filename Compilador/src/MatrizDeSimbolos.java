@@ -2,11 +2,15 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
     private int linha;
     private int coluna;
     private Token[][] matriz;
+    private int tamMaxL;
+    private int tamMaxC;
 
-    public MatrizDeSimbolos() {
+    public MatrizDeSimbolos(int tamL, int tamC) {
         this.linha = 0;
         this.coluna = 0;
-        this.matriz = new Token[20][20];
+        this.matriz = new Token[tamL][tamC];
+        tamMaxL = tamL;
+        tamMaxC = tamC;
 
     }
 
@@ -29,7 +33,7 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
 
     @Override
     public Token getTokenNaPosicao(int linha, int coluna) {
-        return this.matriz[linha][coluna];
+        return this.matriz[coluna][linha];
     }
 
     @Override
@@ -44,12 +48,12 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
 
     @Override
     public int getLinhaMax() {
-        return matriz[0].length;
+        return this.tamMaxL;
     }
 
     @Override
     public int getColunaMax() {
-        return matriz.length;
+        return this.tamMaxC;
     }
 
 }

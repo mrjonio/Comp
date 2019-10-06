@@ -10,11 +10,11 @@ public class Lexer {
     private int tamAtual;
     private ArrayList tokenAtual;
 
-    public Lexer() {
-        this.line = 0;
+    public Lexer(int tamLinha, int tamColuna) {
+        this.line = -1;
         this.tamAtual = 0;
         this.tokenAtual = new ArrayList();
-        this.matriz = new MatrizDeSimbolos();
+        this.matriz = new MatrizDeSimbolos(tamLinha, tamColuna);
 
     }
 
@@ -27,23 +27,25 @@ public class Lexer {
         while (sc.ready()){
             String linha = sc.readLine();
             char[] linhaChar = linha.toCharArray();
+            this.line++;
             for (int i = 0; i < linhaChar.length; i++){
                 if (linhaChar[i] != ' '){
                     lerToken(Arrays.copyOfRange(linhaChar, i, (linhaChar.length)));
                     break;
                 }
             }
-        }
+        } Token tokenFinal = new Token("final", "< $, ", this.line + 1,
+                "$", this.matriz.getLinhaAtual(), this.matriz.getColunaAtual());
+        this.matriz.alocarToken(tokenFinal);
     }
 
     private void lerToken(char[] linha){
-        this.line++;
         for (char aLinha : linha) {
             if (aLinha == '#'){
                 break;
             } else{
                 if ((aLinha == ' ') || (aLinha == '(') || (aLinha == ')') || (aLinha == '{') || (aLinha == '}')
-                        || (aLinha == ';') ||  (aLinha == ',') || aLinha == '\n') {
+                        || (aLinha == ';') ||  (aLinha == ',') || (aLinha == ':') || aLinha == '\n') {
                     char[] tokenPego = new char[this.tamAtual];
                     for (int j = 0; j < this.tamAtual; j++) {
                         tokenPego[j] = this.tokenAtual.get(j).toString().charAt(0);
@@ -129,6 +131,9 @@ public class Lexer {
                 return "< >= operator, ";
             case ">":
                 return "< > operator, ";
+            case ":":
+                return "< > operator, ";
+
 
             default:
                 if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
