@@ -11,7 +11,7 @@ public class Lexer {
     private ArrayList tokenAtual;
 
     public Lexer(int tamLinha, int tamColuna) {
-        this.line = -1;
+        this.line = 0;
         this.tamAtual = 0;
         this.tokenAtual = new ArrayList();
         this.matriz = new MatrizDeSimbolos(tamLinha, tamColuna);
@@ -22,7 +22,7 @@ public class Lexer {
         return matriz;
     }
 
-    public void lerCodigoFonte(String caminho) throws IOException {
+    void lerCodigoFonte(String caminho) throws IOException {
         BufferedReader sc = new BufferedReader(new FileReader(caminho));
         while (sc.ready()){
             String linha = sc.readLine();
@@ -34,18 +34,18 @@ public class Lexer {
                     break;
                 }
             }
-        } Token tokenFinal = new Token("final", "< $, ", this.line + 1,
+        } Token tokenFinal = new Token("final", "< $, ", this.line,
                 "$", this.matriz.getLinhaAtual(), this.matriz.getColunaAtual());
         this.matriz.alocarToken(tokenFinal);
     }
 
     private void lerToken(char[] linha){
-        for (char aLinha : linha) {
-            if (aLinha == '#'){
+        for (char aLinha : linha)
+            if (aLinha == '#') {
                 break;
-            } else{
+            } else {
                 if ((aLinha == ' ') || (aLinha == '(') || (aLinha == ')') || (aLinha == '{') || (aLinha == '}')
-                        || (aLinha == ';') ||  (aLinha == ',') || (aLinha == ':') || aLinha == '\n') {
+                        || (aLinha == ';') || (aLinha == ',') || (aLinha == ':') || aLinha == '\n' || aLinha == '.') {
                     char[] tokenPego = new char[this.tamAtual];
                     for (int j = 0; j < this.tamAtual; j++) {
                         tokenPego[j] = this.tokenAtual.get(j).toString().charAt(0);
@@ -60,19 +60,15 @@ public class Lexer {
                         this.tamAtual = 0;
                     }
                     if (aLinha != ' ') {
-                        String pos = this.matriz.getLinhaAtual() + "," + this.matriz.getColunaAtual();
                         Token tokenExcept = new Token((Character.toString(aLinha)), "<" + Character.toString(aLinha) + ", ",
                                 this.line, Character.toString(aLinha), this.matriz.getLinhaAtual(), this.matriz.getColunaAtual());
                         this.matriz.alocarToken(tokenExcept);
                     }
                 } else {
-                    if(aLinha != '\n' && aLinha != ' ') {
-                        this.tokenAtual.add(aLinha);
-                        this.tamAtual++;
-                    }
+                    this.tokenAtual.add(aLinha);
+                    this.tamAtual++;
                 }
             }
-        }
     }
 
     private String identificarLexema(String tokenAtualIdentificado){
@@ -133,8 +129,8 @@ public class Lexer {
                 return "< > operator, ";
             case ":":
                 return "< > operator, ";
-
-
+            case ".":
+                return "< . final, ";
             default:
                 if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
                         tokenAtualIdentificado.charAt(0) == '3' || tokenAtualIdentificado.charAt(0) == '4' || tokenAtualIdentificado.charAt(0) == '5' ||

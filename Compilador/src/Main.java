@@ -5,11 +5,20 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        Lexer lex = new Lexer(100, 100);
-        lex.lerCodigoFonte("C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt");
+        Lexer lex = new Lexer(200, 200);
+        lex.lerCodigoFonte("C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste2.txt");
         IMatrizDeSimbolos m = lex.getMatriz();
 
-        Parser parser = new Parser(0, 0, m);
+        try {
+            Parser parser = new Parser(0, 0, m);
+            for (int i =0; i < parser.getArvoreSintatica().size(); i++){
+                System.out.print(parser.getArvoreSintatica().get(i) + " -> ");
+            }
+        } catch (SintaxError sintaxError) {
+            sintaxError.mostrarErro();
+        }
+
+
 
         //lex.lerCodigoFonte("/home/antonio/Documentos/Comp/Compilador/src/teste.txt");
     }

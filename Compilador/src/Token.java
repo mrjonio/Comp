@@ -55,6 +55,10 @@ public class Token {
         return valor;
     }
 
+    public void addEscopo(int escopo){
+        this.escopo.add(escopo);
+    }
+
 
 
 }

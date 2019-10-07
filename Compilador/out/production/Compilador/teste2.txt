@@ -1,0 +1,15 @@
+program teste2:
+procedure funcao (Integer x, Boolean n):
+begin:
+while x < n do:
+x = x + x;
+if x = n then:
+    write (" aaaaaaaa ");
+else:
+    write(" aaaaaa ");
+endelse;
+endif;
+endwhile;
+return x;
+end;
+.
