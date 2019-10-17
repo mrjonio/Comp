@@ -1,16 +1,24 @@
 program teste:
 Integer a = 1;
-Integer b = 0;
-procedure main ( Integer xou, Boolean nao ):
+Integer b;
+b = 9;
+procedure new ();
+procedure main ( Integer xou ):
 begin:
 while a < b do:
-a = a + a;
-if a = b then:
-    write (" aaaaaaaa ");
-else:
-    write(" aaaaaa ");
-endelse;
-endif;
+    while b > a do:
+        a = q + a;
+    if a = b then:
+        if a = v then:
+            write (" q ");
+
+        endif;
+    else:
+        write(" aaaaaa ");
+        continue;
+    endelse;
+    endif;
+    endwhile;
 endwhile;
 end;
 .

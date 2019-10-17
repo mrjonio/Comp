@@ -44,7 +44,7 @@ public class Lexer {
             if (aLinha == '#') {
                 break;
             } else {
-                if ((aLinha == ' ') || (aLinha == '(') || (aLinha == ')') || (aLinha == '{') || (aLinha == '}')
+                if ((aLinha == ' ') || (aLinha == '(') || (aLinha == ')')
                         || (aLinha == ';') || (aLinha == ',') || (aLinha == ':') || aLinha == '\n' || aLinha == '.') {
                     char[] tokenPego = new char[this.tamAtual];
                     for (int j = 0; j < this.tamAtual; j++) {

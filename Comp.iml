@@ -17,5 +17,14 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jflex-full-1.7.0" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/jacc-master/jacc.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Lexer lex = new Lexer(200, 200);
-        lex.lerCodigoFonte("C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste2.txt");
+        lex.lerCodigoFonte("C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt");
         IMatrizDeSimbolos m = lex.getMatriz();
 
         try {

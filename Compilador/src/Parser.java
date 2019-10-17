@@ -175,16 +175,26 @@ public class Parser {
                 }
                 break;
             case "<variable_declaration_part>":
-                if (lookAhead("Integer") || lookAhead("Boolean") || lookAhead("true") ||
-                        lookAhead("false")) {
-                        pilha.push("<block>");
-                        pilha.push(";");
-                        pilha.push("<identifier_or_value>");
-                        pilha.push("=");
+                if (lookAhead("Integer") || lookAhead("Boolean")) {
+                        pilha.push("<variable_declaration_part_optional>");
                         pilha.push("<identifier>");
                         pilha.push("<predefined_identifier>");
                     // TEM QUE ADICIONAR O ESCOPO + VALOR SEMÂNTICO!!!!!!
                 } //Else: <empty>
+                break;
+            case "<variable_declaration_part_optional>":
+                if (lookAhead("=")){
+                    pilha.push("<block>");
+                    pilha.push(";");
+                    pilha.push("<identifier_or_value>");
+                    pilha.push("=");
+                } else if (lookAhead(";")){
+                    pilha.push("block");
+                    pilha.push(";");
+                } else {
+                    Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                    throw new SintaxError(a.getLinha(), a.getValor());
+                }
                 break;
             case "<procedure_declaration_part>":
                 if (lookAhead("procedure")) {
@@ -246,8 +256,10 @@ public class Parser {
                 }
                 break;
             case "<parameters>":
-                pilha.push("<parameter>");
-                pilha.push("<variable_parameter>");
+                if (lookAhead("Integer") || lookAhead("Boolean")) {
+                    pilha.push("<parameter>");
+                    pilha.push("<variable_parameter>");
+                } //Else: empty
                 break;
             case "<parameter>":
                 if (lookAhead(",")) {
@@ -756,7 +768,10 @@ public class Parser {
                 if (lookAhead("Integer") || lookAhead("Boolean")){
                     pilha.push("<identifier>");
                     pilha.push("<predefined_identifier>");
-                 } //Else: empty
+                 } else {
+                    Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                    throw new SintaxError(a.getLinha(), a.getValor());
+                }
         }
     }
 

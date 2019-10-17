@@ -1,0 +1,53 @@
+%{
+
+import java.io.\*;
+
+%}
+
+%class Parser
+%interface parserTokens
+
+%token equal type saida num id
+
+%start VARIAVEL
+
+%%
+
+
+VARIAVEL:
+ INT
+ | BOOLEAN
+ ;
+
+INT :
+ type id '=' num
+ ;
+
+BOOLEAN :
+ type id '=' saida {System.out.println("Expressao booleana: " + $2);}
+ ;
+
+%%
+
+private Lexer lexer;
+
+    public Parser(Reader reader)
+    {
+        lexer = new Lexer(reader);
+    }
+
+    public void yyerror(String error)
+    {
+        System.err.println("Error: " + error);
+    }
+
+    public static void main(String args[]) throws IOException
+    {
+        System.out.println("Interactive evaluation:");
+
+        Parser parser = new Parser(
+            new InputStreamReader(System.in));
+
+        parser.lexer.nextToken();
+        parser.parse();
+    }
