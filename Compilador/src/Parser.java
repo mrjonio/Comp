@@ -63,6 +63,17 @@ public class Parser {
                 }
                 pilha.push("<letter>");
                 break;
+            case "<variable_att>":
+                if (!isPalavraReservada(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
+                        isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))){
+                    pilha.push("<block>");
+                    pilha.push(";");
+                    pilha.push("<identifier_or_value>");
+                    pilha.push("=");
+                    pilha.push("<identifier>");
+
+                }
+                break;
             case "<letter>":
                 if (!isPalavraReservada(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor())) {
                     if (isALetter(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))) {
@@ -108,6 +119,7 @@ public class Parser {
                 }
                 break;
             case "<block>":
+                pilha.push("<variable_att>");
                 pilha.push("<statement_part>");
                 pilha.push("<procedure_declaration_part>");
                 pilha.push("<variable_declaration_part>");
@@ -189,7 +201,7 @@ public class Parser {
                     pilha.push("<identifier_or_value>");
                     pilha.push("=");
                 } else if (lookAhead(";")){
-                    pilha.push("block");
+                    pilha.push("<block>");
                     pilha.push(";");
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);

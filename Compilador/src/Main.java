@@ -6,7 +6,14 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Lexer lex = new Lexer(200, 200);
-        lex.lerCodigoFonte("C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt");
+        String resourcePath = null;
+        switch (System.getProperty("os.name")) {
+            case "Linux":  resourcePath = "/home/antonio/Documentos/Comp/Compilador/src/teste.txt";
+                break;
+            case "Windows 10":  resourcePath = "C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt";
+                break;
+        }
+        lex.lerCodigoFonte(resourcePath);
         IMatrizDeSimbolos m = lex.getMatriz();
 
         try {
