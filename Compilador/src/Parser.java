@@ -67,11 +67,18 @@ public class Parser {
                 if (!isPalavraReservada(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
                         isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))){
                     pilha.push("<block>");
-                    pilha.push(";");
-                    pilha.push("<identifier_or_value>");
+                    pilha.push("<att_choose>");
                     pilha.push("=");
                     pilha.push("<identifier>");
 
+                }
+                break;
+            case "<att_choose>":
+                if (lookAhead("procedure")){
+                    pilha.push("<procedure_declaration_part>");
+                } else {
+                    pilha.push(";");
+                    pilha.push("<identifier_or_value>");
                 }
                 break;
             case "<letter>":
@@ -154,7 +161,7 @@ public class Parser {
                 if (lookAhead("begin") || lookAhead("while") || lookAhead("if")) {
                     pilha.push("<statement>");
                     pilha.push("<structured_statement>");
-                } else if (lookAhead("write") || lookAhead("call") || lookAhead("break") || lookAhead("continue") ||
+                } else if (lookAhead("write") || lookAhead("call")  ||
                         (!isPalavraReservada(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
                                 isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0)))){
                             pilha.push("<statement>");
@@ -215,6 +222,7 @@ public class Parser {
                     pilha.push("<parameters>");
                     pilha.push("(");
                     pilha.push("<identifier>");
+                    pilha.push("<predefined_identifier>");
                     pilha.push("procedure");
                 } //Else: <empty>
                 break;
@@ -256,14 +264,10 @@ public class Parser {
                 if (lookAhead("write")) {
                     pilha.push("<write_statement>");
                 } else {
-                    if (lookAhead("break") || lookAhead("continue")) {
-                        pilha.push("<detour_statement>");
+                    if (lookAhead("call")) {
+                        pilha.push("<procedure_statement>");
                     } else {
-                        if (lookAhead("call")) {
-                            pilha.push("<procedure_statement>");
-                        } else {
-                            pilha.push("<assignment_statement>");
-                        }
+                        pilha.push("<assignment_statement>");
                     }
                 }
                 break;
@@ -280,12 +284,13 @@ public class Parser {
                 } //Else: <Empty>
                 break;
             case "<detour_statement>":
-                pilha.push(";");
                 if (lookAhead("break")) {
+                    pilha.push(";");
                     pilha.push("break");
-                } else {
+                } else if (lookAhead("continue")){
+                    pilha.push(";");
                     pilha.push("continue");
-                }
+                } //Else: empty
                 break;
             case "<assignment_statement>":
                 pilha.push(";");
@@ -324,6 +329,7 @@ public class Parser {
                 pilha.push(";");
                 pilha.push("endif");
                 pilha.push("<else_statement>");
+                pilha.push("<detour_statement>");
                 pilha.push("<statement>");
                 pilha.push(":");
                 pilha.push("then");
@@ -334,6 +340,7 @@ public class Parser {
                 if (lookAhead("else")) {
                     pilha.push(";");
                     pilha.push("endelse");
+                    pilha.push("<detour_statement>");
                     pilha.push("<statement>");
                     pilha.push(":");
                     pilha.push("else");
@@ -342,6 +349,7 @@ public class Parser {
             case "<while_statement>":
                 pilha.push(";");
                 pilha.push("endwhile");
+                pilha.push("<detour_statement>");
                 pilha.push("<statement>");
                 pilha.push(":");
                 pilha.push("do");
@@ -446,8 +454,11 @@ public class Parser {
                 if (lookAhead("Integer")) {
                     pilha.push("Integer");
                 }
-                if (lookAhead("Boolean")) {
+                else if (lookAhead("Boolean")) {
                     pilha.push("Boolean");
+                } else {
+                    Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                    throw new SintaxError(a.getLinha(), a.getValor());
                 }
                 break;
             case "<identifier_or_value>":

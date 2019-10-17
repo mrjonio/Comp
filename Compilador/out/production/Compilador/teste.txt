@@ -2,12 +2,12 @@ program teste:
 Integer a = 1;
 Integer b;
 b = 9;
-procedure new ();
-procedure main ( Integer xou ):
+procedure Integer new ();
+procedure Boolean main ( Integer xou ):
 begin:
 while a < b do:
     while b > a do:
-        a = q + a;
+        a = Integer main( a );
     if a = b then:
         if a = v then:
             write (" q ");
