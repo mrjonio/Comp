@@ -359,9 +359,15 @@ public class Parser {
 
             //Antônio//
             case "<expression>":
-                pilha.push("<complement_expression>");
-                pilha.push("<simple_expression>");
+                if (lookAhead("true") || lookAhead("false")){
+                    pilha.push("<boolean_value>");
+                }else{
+                    pilha.push("<complement_expression>");
+                    pilha.push("<simple_expression>");
+
+                }
                 break;
+
             case "<complement_expression>":
                 if (lookAhead("=") || lookAhead("<>") || lookAhead("<") || lookAhead("<=") ||
                 lookAhead(">=") || lookAhead(">")){
@@ -463,7 +469,6 @@ public class Parser {
                 break;
             case "<identifier_or_value>":
                 if (lookAhead("true") || lookAhead("false")){
-                    pilha.push("<compl_idv>");
                     pilha.push("<boolean_value>");
                 } else{
                     pilha.push("<simple_expression>");
@@ -487,6 +492,8 @@ public class Parser {
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOO");
                 }
+                break;
+
             case "(":
                 if (lookAhead("(")){
                     incrementaPosToken();
@@ -787,6 +794,22 @@ public class Parser {
                     throw new SintaxError(a.getLinha(), a.getValor());
                 }
                 break;
+            case "true":
+                if (lookAhead("true")){
+                    incrementaPosToken();
+                } else {
+                    Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                    throw new SintaxError(a.getLinha(), a.getValor());
+                }
+                break;
+            case "false":
+                if (lookAhead("false")){
+                    incrementaPosToken();
+                } else {
+                    Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                    throw new SintaxError(a.getLinha(), a.getValor());
+                }
+                break;
             case "<variable_parameter>":
                 if (lookAhead("Integer") || lookAhead("Boolean")){
                     pilha.push("<identifier>");
@@ -860,6 +883,9 @@ public class Parser {
                 caractere == '6' || caractere == '7' || caractere == '8' || caractere == '9';
     }
 
+    private boolean isABoolean(String caractere){
+        return caractere == "true" || caractere == "false";
+    }
     private boolean lookAhead(String terminal){
         if (matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual) != null) {
             return matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().equals(terminal);

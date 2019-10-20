@@ -1,13 +1,14 @@
 program teste:
 Integer a = 1;
+Boolean x = false;
 Integer b;
 b = 9;
 procedure Integer new ();
 procedure Boolean main ( Integer xou ):
 begin:
-while a < b do:
+while true do:
     while b > a do:
-        a = call main( a );
+        a = a ;
     if a = b then:
         if a = v then:
             write (" q ");
