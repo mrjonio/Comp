@@ -1,21 +1,29 @@
 program teste:
-Integer a = 1;
+
+Integer a = 1 + 1 > 1;
+
 Boolean x = false;
 Integer b;
 b = 9;
+c = call new();
+call new();
 procedure Integer new ();
+write(bomdia);
 procedure Boolean main ( Integer xou ):
 begin:
-while true do:
+
+while (a + b > (c - a) and true) do:
     while b > a do:
         a = a ;
+        b = call new();
+
     if a = b then:
         if a = v then:
-            write (" q ");
+            write (q);
 
         endif;
     else:
-        write(" aaaaaa ");
+        write(aaaaaa);
         continue;
     endelse;
     endif;
