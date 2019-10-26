@@ -1,14 +1,14 @@
 import java.util.ArrayList;
 import java.util.Stack;
 
+
 public class Parser {
     private int linhaAtual;
     private int colunaAtual;
     private Stack<String> pilha;
     private IMatrizDeSimbolos matrizDeSimbolos;
     private ArrayList<String> arvore;
-    private ArrayList escopo;
-    private int escopoAtual;
+    private Escopo escopoGeral;
 
     public Parser(int linhaAtual, int colunaAtual, IMatrizDeSimbolos matrizDeSimbolos) throws SintaxError {
         this.linhaAtual = linhaAtual;
@@ -16,8 +16,7 @@ public class Parser {
         this.pilha = new Stack<String>();
         this.matrizDeSimbolos = matrizDeSimbolos;
         this.arvore = new ArrayList<>();
-        this.escopo = new ArrayList();
-        this.escopoAtual = 0;
+        this.escopoGeral = new Escopo();
         iniciar();
     }
 
@@ -42,7 +41,6 @@ public class Parser {
             case "<program>":
                 pilha.push(".");
                 pilha.push("<block>");
-                this.escopoAtual++;
                 pilha.push(":");
                 pilha.push("<identifier>");
                 pilha.push("program");
@@ -50,7 +48,7 @@ public class Parser {
             case "program":
                 if (lookAhead("program")) {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+                    a.setEscopo(escopoGeral);
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -89,7 +87,11 @@ public class Parser {
                             matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).setValor(valorVerificado);
                         } else {
                             Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                            a.addEscopo(escopoAtual);
+
+                            if(validarEscopo(a)){
+                                a.setEscopo(this.escopoGeral);
+                            }
+
                             incrementaPosToken();
                         }
 
@@ -110,7 +112,11 @@ public class Parser {
                         }
                     } if(flag) {
                         Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                        a.addEscopo(escopoAtual);
+
+                        if(validarEscopo(a)){
+                            a.setEscopo(this.escopoGeral);
+                        }
+
                         incrementaPosToken();
                     } else {
                         //Else: empty
@@ -148,9 +154,13 @@ public class Parser {
                 break;
             case "begin":
                 if (lookAhead("begin")) {
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -183,10 +193,14 @@ public class Parser {
                 break;
             case "end":
                 if (lookAhead("end")) {
-                    this.escopoAtual--;
+                    this.escopoGeral.decrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
-                    this.escopoAtual++;
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
+                    this.escopoGeral.incrementar();
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -250,9 +264,13 @@ public class Parser {
                 break;
             case "procedure":
                 if (lookAhead("procedure")) {
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -372,10 +390,8 @@ public class Parser {
                     pilha.push("<after_expression>");  
                     pilha.push("<complement_expression>");
                     pilha.push("<simple_expression>");
-
                 }
                 break;
-            
             case "<after_expression>":
                 if (lookAhead("and")){
                     pilha.push("<expression>");
@@ -385,7 +401,6 @@ public class Parser {
                     pilha.push("or");
                 } //Else: empty
                 break;
-
             case "<complement_expression>":
                 if (lookAhead("=") || lookAhead("<>") || lookAhead("<") || lookAhead("<=") ||
                 lookAhead(">=") || lookAhead(">")){
@@ -412,7 +427,6 @@ public class Parser {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
                     throw new SintaxError(a.getLinha(), a.getValor());
                 }
-
                 break;
             case "<multiplying_operator1>":
                 if (lookAhead("*") || lookAhead("div") || lookAhead("and")) {
@@ -648,9 +662,13 @@ public class Parser {
                 break;
             case "while":
                 if (lookAhead("while")){
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -667,9 +685,13 @@ public class Parser {
                 break;
             case "if":
                 if (lookAhead("if")){
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -718,9 +740,13 @@ public class Parser {
                 break;
             case "return":
                 if (lookAhead("return")){
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -729,9 +755,13 @@ public class Parser {
                 break;
             case "continue":
                 if (lookAhead("continue")){
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -740,9 +770,13 @@ public class Parser {
                 break;
             case "break":
                 if (lookAhead("break")){
-                    this.escopoAtual++;
+                    this.escopoGeral.incrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -767,9 +801,13 @@ public class Parser {
                 break;
             case "endif":
                 if (lookAhead("endif")){
-                    this.escopoAtual--;
+                    this.escopoGeral.decrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -778,9 +816,13 @@ public class Parser {
                 break;
             case "endelse":
                 if (lookAhead("endelse")){
-                    this.escopoAtual--;
+                    this.escopoGeral.decrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -789,9 +831,13 @@ public class Parser {
                 break;
             case "endwhile":
                 if (lookAhead("endwhile")){
-                    this.escopoAtual--;
+                    this.escopoGeral.decrementar();
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -801,7 +847,11 @@ public class Parser {
             case "Integer":
                 if (lookAhead("Integer")){
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -811,7 +861,11 @@ public class Parser {
             case "Boolean":
                 if (lookAhead("Boolean")){
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                    a.addEscopo(escopoAtual);
+
+                    if(validarEscopo(a)){
+                        a.setEscopo(this.escopoGeral);
+                    }
+
                     incrementaPosToken();
                 } else {
                     Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
@@ -913,6 +967,25 @@ public class Parser {
         if (matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual) != null) {
             return matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().equals(terminal);
         } return false;
+    }
+
+    private boolean validarEscopo(Token a){
+        boolean valido = false;
+        Token validacao = matrizDeSimbolos.buscarToken(a.getNome());
+
+        if(validacao != null){
+            Escopo escopoValidacao = validacao.getEscopo();
+            int idEscopoValidacao = escopoValidacao.getId();
+            ArrayList escoposPais= this.escopoGeral.getEscoposPai();
+            if(!(escoposPais.contains(idEscopoValidacao))) {
+                System.out.printf("ERRO!\n Variável não pertence ao escopo\n");
+                valido = false;
+            }
+        }else{
+            valido = true;
+        }
+
+        return valido;
     }
 
 }

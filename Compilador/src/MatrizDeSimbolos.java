@@ -32,6 +32,19 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
     }
 
     @Override
+    public Token buscarToken(String nome){
+        for (int i = 0; i < this.linha; i++){
+            for (int k = 0; i < this.coluna; i++){
+                Token token = this.matriz[this.linha][this.coluna];
+                if(token.getNome() == nome){
+                    return token;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public Token getTokenNaPosicao(int linha, int coluna) {
         return this.matriz[coluna][linha];
     }

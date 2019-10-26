@@ -1,7 +1,5 @@
 program teste:
-
-Integer a = 1 + 1 > 1;
-
+Integer a = 1 + 1;
 Boolean x = false;
 Integer b;
 b = 9;
@@ -11,12 +9,11 @@ procedure Integer new ();
 write(bomdia);
 procedure Boolean main ( Integer xou ):
 begin:
-
-while (a + b > (c - a) and true) do:
+while (true) do:
+    Integer j = 1;
     while b > a do:
-        a = a ;
+        a = a;
         b = call new();
-
     if a = b then:
         if a = v then:
             write (q);
@@ -29,5 +26,7 @@ while (a + b > (c - a) and true) do:
     endif;
     endwhile;
 endwhile;
+
+j=3;
 end;
 .
