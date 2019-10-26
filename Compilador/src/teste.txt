@@ -26,7 +26,6 @@ while (true) do:
     endif;
     endwhile;
 endwhile;
-
-j=3;
+j = 3;
 end;
 .

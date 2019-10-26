@@ -172,6 +172,7 @@ public class Parser {
                     pilha.push("<block>");
                     pilha.push("<structured_statement>");
                 } else if (lookAhead("write") || lookAhead("call")  || lookAhead("procedure") ||
+                lookAhead("Integer") || lookAhead("Boolean") ||
                         (!isPalavraReservada(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
                                 isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0)))){
                             pilha.push("<block>");
@@ -287,6 +288,8 @@ public class Parser {
                     } else if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
                             isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))){
                         pilha.push("<variable_att>");
+                    } else if(lookAhead("Integer") || lookAhead("Boolean")){
+                        pilha.push("<variable_declaration_part>");
                     }
                 }
                 break;
