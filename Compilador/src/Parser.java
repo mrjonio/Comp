@@ -101,14 +101,9 @@ public class Parser {
             case "<letter>":
                 if (!isPalavraReservada(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor())) {
                     if (isALetter(matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0))) {
-                        if (matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().substring(1).length() > 0) {
-                            String valorVerificado = matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().substring(1);
-                            matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).setValor(valorVerificado);
-                        } else {
-                            Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                        if (matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().substring(1).length() <= 0) {
                             incrementaPosToken();
                         }
-
                     } else {
                         Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
                         throw new SintaxError(a.getLinha(), a.getValor());
@@ -286,7 +281,6 @@ public class Parser {
                 break;
             case "<simple_statement>":
                 if (lookAhead("write")) {
-                    this.isPrograma = true;
                     pilha.push("<write_statement>");
                 } else {
                     if (lookAhead("call")) {
@@ -339,6 +333,7 @@ public class Parser {
                 pilha.push("write");
                 break;
             case "<write_params>":
+                isVariavel = true;
                 if (lookAhead("call")){
                     pilha.push("<procedure_statement>");
                 } else if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
@@ -938,6 +933,7 @@ public class Parser {
     private boolean validarEscopo(Token b) throws JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
         boolean valido = true;
         Token validacao = matrizDeSimbolos.buscarToken(linhaAtual, colunaAtual);
+        System.out.println(isPrograma);
         if (this.isPrograma) {
             return false;
         }

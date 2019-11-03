@@ -1,14 +1,16 @@
 program teste:
 Integer a = 1 + 1;
 Boolean x = false;
-Integer b;
-b = 9;
+Integer bonita;
+Integer b = 10;
+bonita = 9;
 Integer c;
 c = call new();
 call new();
 procedure Integer new();
+Integer bomdia = 10;
 write( bomdia );
-procedure Boolean main ( Integer xou ):
+procedure Boolean main ( Integer xou, Boolean cabo ):
 begin:
 while (true) do:
     Integer j = 1;
@@ -18,10 +20,12 @@ while (true) do:
         Integer v = 10;
     if a = b then:
         if a = b then:
+        Integer q = 90;
             write (q);
         endif;
         v = 11;
     else:
+        Boolean aaaaaa =  10;
         write(aaaaaa);
         continue;
     endelse;
