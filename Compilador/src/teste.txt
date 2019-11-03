@@ -3,10 +3,11 @@ Integer a = 1 + 1;
 Boolean x = false;
 Integer b;
 b = 9;
+Integer c;
 c = call new();
 call new();
-procedure Integer new ();
-write(bomdia);
+procedure Integer new();
+write( bomdia );
 procedure Boolean main ( Integer xou ):
 begin:
 while (true) do:
@@ -14,11 +15,12 @@ while (true) do:
     while b > a do:
         a = a;
         b = call new();
+        Integer v = 10;
     if a = b then:
-        if a = v then:
+        if a = b then:
             write (q);
-
         endif;
+        v = 11;
     else:
         write(aaaaaa);
         continue;
@@ -26,6 +28,12 @@ while (true) do:
     endif;
     endwhile;
 endwhile;
+if a = b then:
+    Integer j = 10;
+endif;
+Integer j = 1;
 j = 3;
 end;
+Integer j;
+j = 8;
 .

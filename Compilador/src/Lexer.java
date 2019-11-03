@@ -74,71 +74,71 @@ public class Lexer {
     private String identificarLexema(String tokenAtualIdentificado){
         switch (tokenAtualIdentificado){
             case "if":
-                return "<if, ";
+                return "if";
             case "else":
-                return "<else, ";
+                return "else";
             case "while":
-                return "<while, ";
+                return "while";
             case "break":
-                return "<break, ";
+                return "break";
             case "continue":
-                return "<continue, ";
+                return "continue";
             case "program":
-                return "<program, ";
+                return "program";
             case "var":
-                return "<var, ";
+                return "var";
             case "procedure":
-                return "<procedure, ";
+                return "procedure";
             case "begin":
-                return "<begin, ";
+                return "begin";
             case "return":
-                return "<return, ";
+                return "return";
             case "end":
-                return "<end, ";
+                return "end";
             case "write":
-                return "<write, ";
+                return "write";
             case "do":
-                return "<do, ";
+                return "do";
             case "then":
-                return "<then, ";
+                return "then";
             case "not":
-                return "<not, ";
+                return "not";
             case "+":
-                return "<+ operator, ";
+                return "+_operator";
             case "-":
-                return "<- operator, ";
+                return "-_operator";
             case "or":
-                return "<or operator, ";
+                return "or_operator";
             case "*":
-                return "<* operator, ";
+                return "*_operator";
             case "and":
-                return "<and operator, ";
+                return "and_operator";
             case "div":
-                return "<div operator, ";
+                return "div_operator";
             case "=":
-                return "< = operator, ";
+                return "=_operator";
             case "<>":
-                return "< <> operator, ";
+                return "<>_operator";
             case "<":
-                return "< < operator, ";
+                return "<_operator";
             case "<=":
-                return "< <= operator, ";
+                return "<=_operator";
             case ">=":
-                return "< >= operator, ";
+                return "<>=_operator";
             case ">":
-                return "< > operator, ";
+                return ">_operator";
             case ":":
-                return "< > operator, ";
+                return ":_operator";
             case ".":
-                return "< . final, ";
+                return "._final";
             default:
                 if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
                         tokenAtualIdentificado.charAt(0) == '3' || tokenAtualIdentificado.charAt(0) == '4' || tokenAtualIdentificado.charAt(0) == '5' ||
                         tokenAtualIdentificado.charAt(0) == '6' || tokenAtualIdentificado.charAt(0) == '7' || tokenAtualIdentificado.charAt(0) == '8' ||
                         tokenAtualIdentificado.charAt(0) == '9'){
-                    return "<integer constant, ";
+                    return "integer constant";
                 }else {
-                    return "<identifier, ";
+                    return "identifier";
                 }
 
         }

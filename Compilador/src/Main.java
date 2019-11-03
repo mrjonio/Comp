@@ -23,6 +23,12 @@ public class Main {
             }
         } catch (SintaxError sintaxError) {
             sintaxError.mostrarErro();
+        } catch (JaDeclaradoError jaDeclaradoError){
+            jaDeclaradoError.mostrarErro();
+        } catch (NaoDeclaradoError naoDeclaradoError){
+            naoDeclaradoError.mostrarErro();
+        } catch (EscopoInacessivelError escopoInacessivelError){
+            escopoInacessivelError.mostrarErro();
         }
 
 

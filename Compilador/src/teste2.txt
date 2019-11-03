@@ -1,15 +1,16 @@
 program teste2:
-procedure funcao (Integer x, Boolean n):
-begin:
-while x < n do:
-x = x + x;
-if x = n then:
-    write (" aaaaaaaa ");
-else:
-    write(" aaaaaa ");
-endelse;
-endif;
+Integer x = 0;
+while x < 10 do:
+    if x < 10 then:
+        Boolean y = True;
+        if y > 10 then:
+            x = 9;
+        else:
+            y = 9;
+            endelse;
+        endif;
+    endif;
+    Integer y = 10;
+    y = 9;
 endwhile;
-return x;
-end;
 .
