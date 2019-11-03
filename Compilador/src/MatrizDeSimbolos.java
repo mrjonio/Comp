@@ -1,14 +1,20 @@
+import java.util.ArrayList;
+
 public class MatrizDeSimbolos implements IMatrizDeSimbolos{
     private int linha;
     private int coluna;
     private Token[][] matriz;
     private int tamMaxL;
     private int tamMaxC;
+    ArrayList<Token> funcoes;
+    ArrayList<Token> variaveis;
 
     public MatrizDeSimbolos(int tamL, int tamC) {
         this.linha = 0;
         this.coluna = 0;
         this.matriz = new Token[tamL][tamC];
+        this.funcoes = new ArrayList<>();
+        this.variaveis =  new ArrayList<>();
         tamMaxL = tamL;
         tamMaxC = tamC;
 
@@ -30,6 +36,46 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
         }
 
     }
+
+    @Override
+    public void addFuncao(Token funcao) throws JaDeclaradoError {
+        if (!this.funcoes.contains(funcao))
+            this.funcoes.add(funcao);
+        else
+            throw new JaDeclaradoError(funcao.getLinha(), funcao.getNome());
+    }
+
+    @Override
+    public Token buscarVariavel(String nomeDaVariavel){
+        for (Token a: variaveis)
+            return a.getNome().equals(nomeDaVariavel) ? a : null;
+        return null;
+    }
+
+    @Override
+    public Token buscarFuncao(String nomeDaFuncao){
+        for (Token a : funcoes){
+            return a.getNome().equals(nomeDaFuncao) ? a : null;
+        }
+        return null;
+    }
+
+
+    @Override
+    public void addVariavel(Token variavel) throws JaDeclaradoError {
+            this.variaveis.add(variavel);
+    }
+
+    @Override
+    public ArrayList<Token> funcs() {
+        return this.funcoes;
+    }
+
+    @Override
+    public ArrayList<Token> vars() {
+        return this.variaveis;
+    }
+
 
     @Override
     public Token buscarToken(int linha, int coluna){

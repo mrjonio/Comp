@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Token {
     private String nome;
     private String lexema;
@@ -6,6 +8,9 @@ public class Token {
     private int linhaMatriz;
     private int colunaMatriz;
     private Escopo escopo;
+    private String retornoFuncao;
+    private ArrayList<String> parametros;
+    private boolean declarada;
 
     public Token(String nome, String lexema, int linha, String valor, int linhaMatriz, int colunaMatriz) {
         this.nome = nome;
@@ -15,6 +20,10 @@ public class Token {
         this.linhaMatriz = linhaMatriz;
         this.colunaMatriz = colunaMatriz;
         this.escopo = null;
+        this.retornoFuncao = null;
+        this.parametros = null;
+        this.declarada = false;
+
     }
 
     public String getNome() {
@@ -61,5 +70,27 @@ public class Token {
         return this.escopo;
     }
 
+    public String getRetornoFuncao() {
+        return retornoFuncao;
+    }
 
+    public void setRetornoFuncao(String retornoFuncao) {
+        this.retornoFuncao = retornoFuncao;
+    }
+
+    public ArrayList<String> getParametros() {
+        return parametros;
+    }
+
+    public void setParametros(ArrayList<String> parametros) {
+        this.parametros = parametros;
+    }
+
+    public boolean isDeclarada() {
+        return declarada;
+    }
+
+    public void setDeclarada(boolean declarada) {
+        this.declarada = declarada;
+    }
 }

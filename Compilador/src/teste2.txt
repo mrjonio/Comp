@@ -1,16 +1,13 @@
 program teste2:
-Integer x = 0;
-while x < 10 do:
-    if x < 10 then:
-        Boolean y = True;
-        if y > 10 then:
-            x = 9;
-        else:
-            y = 9;
-            endelse;
-        endif;
-    endif;
-    Integer y = 10;
-    y = 9;
+Integer a = 10;
+Boolean b = 11;
+b = 9;
+procedure Integer aba(Boolean b, Integer a);
+procedure Void boba(Integer a, Integer b):
+begin:
+while a < b do:
+Boolean z = 10;
 endwhile;
+Integer z = 4;
+end;
 .

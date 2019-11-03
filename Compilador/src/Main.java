@@ -10,7 +10,7 @@ public class Main {
         switch (System.getProperty("os.name")) {
             case "Linux":  resourcePath = "/home/antonio/Documentos/Comp/Compilador/src/teste.txt";
                 break;
-            case "Windows 10":  resourcePath = "C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt";
+            case "Windows 10":  resourcePath = "C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste2.txt";
                 break;
         }
         lex.lerCodigoFonte(resourcePath);

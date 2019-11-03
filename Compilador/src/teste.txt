@@ -7,7 +7,7 @@ bonita = 9;
 Integer c;
 c = call new();
 call new();
-procedure Integer new();
+procedure Void new();
 Integer bomdia = 10;
 write( bomdia );
 procedure Boolean main ( Integer xou, Boolean cabo ):

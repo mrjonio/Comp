@@ -27,13 +27,13 @@ public class Lexer {
         while (sc.ready()){
             String linha = sc.readLine();
             char[] linhaChar = linha.toCharArray();
-            this.line++;
             for (int i = 0; i < linhaChar.length; i++){
                 if (linhaChar[i] != ' '){
                     lerToken(Arrays.copyOfRange(linhaChar, i, (linhaChar.length)));
                     break;
                 }
             }
+            this.line++;
         } Token tokenFinal = new Token("final", "< $, ", this.line,
                 "$", this.matriz.getLinhaAtual(), this.matriz.getColunaAtual());
         this.matriz.alocarToken(tokenFinal);
@@ -131,12 +131,14 @@ public class Lexer {
                 return ":_operator";
             case ".":
                 return "._final";
+            case "void":
+                return "Void";
             default:
                 if (tokenAtualIdentificado.charAt(0) == '0' || tokenAtualIdentificado.charAt(0) == '1' || tokenAtualIdentificado.charAt(0) == '2' ||
                         tokenAtualIdentificado.charAt(0) == '3' || tokenAtualIdentificado.charAt(0) == '4' || tokenAtualIdentificado.charAt(0) == '5' ||
                         tokenAtualIdentificado.charAt(0) == '6' || tokenAtualIdentificado.charAt(0) == '7' || tokenAtualIdentificado.charAt(0) == '8' ||
                         tokenAtualIdentificado.charAt(0) == '9'){
-                    return "integer constant";
+                    return "integer_constant";
                 }else {
                     return "identifier";
                 }
