@@ -5,8 +5,6 @@ Integer bonita;
 Integer b = 10;
 bonita = 9;
 Integer c;
-c = call new();
-call new();
 procedure Void new();
 Integer bomdia = 10;
 write( bomdia );
@@ -16,7 +14,7 @@ while (true) do:
     Integer j = 1;
     while b > a do:
         a = a;
-        b = call new();
+        b = call main(b, x);
         Integer v = 10;
     if a = b then:
         if a = b then:

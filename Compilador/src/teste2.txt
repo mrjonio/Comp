@@ -1,13 +1,17 @@
 program teste2:
+Integer c;
 Integer a = 10;
+Integer ab = 10;
 Boolean b = 11;
-b = 9;
-procedure Integer aba(Boolean b, Integer a);
-procedure Void boba(Integer a, Integer b):
+ab = 5;
+b = 9 + 5;
+procedure Integer aba(Boolean y, Integer z);
+procedure Void boba(Integer a, Boolean y, Integer a):
 begin:
 while a < b do:
 Boolean z = 10;
 endwhile;
 Integer z = 4;
 end;
+c = call boba(a, b, a);
 .

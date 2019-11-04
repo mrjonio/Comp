@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.function.ToLongBiFunction;
 
 
 public class Parser {
@@ -18,8 +19,14 @@ public class Parser {
     private Token funcaoAtual;
     private String tipoAtual;
     private Token variavelAtual;
+    private boolean isChamada;
+    private boolean analiseParams;
+    private int qtdparams;
+    private Token funcaoAtualChamada;
+    private boolean isExpressao;
+    private ArrayList<Token> expressao;
 
-    public Parser(int linhaAtual, int colunaAtual, IMatrizDeSimbolos matrizDeSimbolos) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
+    public Parser(int linhaAtual, int colunaAtual, IMatrizDeSimbolos matrizDeSimbolos) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError {
         this.linhaAtual = linhaAtual;
         this.colunaAtual = colunaAtual;
         this.pilha = new Stack<String>();
@@ -35,10 +42,16 @@ public class Parser {
         this.paramsFunc = new ArrayList<>();
         this.tipoAtual = null;
         this.variavelAtual = null;
+        this.isChamada = false;
+        this.analiseParams = false;
+        this.qtdparams = 0;
+        this.funcaoAtualChamada = null;
+        this.isExpressao = false;
+        this.expressao = new ArrayList<>();
         iniciar();
     }
 
-    private void iniciar() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
+    private void iniciar() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError {
         pilha.push("$");
         pilha.push("<program>");
         String regra;
@@ -52,7 +65,7 @@ public class Parser {
     }
 
 
-    private void analisaRegra(String regraAtual) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
+    private void analisaRegra(String regraAtual) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError {
         arvore.add(regraAtual);
         Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
         //System.out.println( regraAtual + " " + pilha.peek() + " " + this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor());
@@ -77,17 +90,50 @@ public class Parser {
                     pilha.push("<letter_or_digit>");
                 }
 
-                if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor())){
-                    if (a.getLexema().equals("identifier") && !(isSpecialSymbol(a.getNome()))) {
+                if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) && !this.isFuncao){
+                    if (a.getLexema().equals("identifier") && !(isSpecialSymbol(a.getNome())) && !this.isChamada) {
                         if (validarEscopo(a)) {
                             Escopo setar = new Escopo(this.escopoGeral.getId(), this.escopoGeral.getEscoposPai());
                             a.setEscopo(setar);
                         }
                     }
-                    if (this.isFuncao) {
+                    if (this.isFuncao && !this.isChamada) {
+                        if (this.matrizDeSimbolos.buscarFuncao(a.getNome()) != null){
+                            throw new JaDeclaradoError(this.matrizDeSimbolos.buscarFuncao(a.getNome()).getLinha(),
+                                    a.getNome());
+                        }
                         if (this.paramsFunc.size() == 1) {
+                            Escopo temp = new Escopo(this.escopoGeral.getId(), this.escopoGeral.getEscoposPai());
+                            a.setEscopo(temp);
                             this.matrizDeSimbolos.addFuncao(a);
                             this.funcaoAtual = a;
+                        }
+                    }
+                    if (isChamada){
+                        if (analisaEscopoFuncao(a)){
+                            analiseParams = true;
+                            this.paramsFunc.clear();
+                            break;
+                        }
+                    }
+                    if (analiseParams){
+                        if (isALetter(a.getNome().charAt(0)) || isADigit(a.getNome().charAt(0))) {
+                            if (analisaParam(a)) {
+                                if (this.funcaoAtualChamada.getParametros().size() > this.qtdparams) {
+                                    System.out.println(matrizDeSimbolos.buscarVariavel(a.getNome()).getRetornoFuncao());
+                                    if (matrizDeSimbolos.buscarVariavel
+                                            (a.getNome()).getRetornoFuncao().equals(this.funcaoAtualChamada.getParametros().get(this.qtdparams))) {
+                                        qtdparams++;
+                                        analiseParams = true;
+                                    } else {
+                                        throw new TypeError(a.getLinha(), a.getNome());
+                                    }
+                                } else {
+                                    throw new OverflowParamsError(a.getLinha(), a.getNome());
+                                }
+                            }
+                        } else {
+                            throw new TypeError(a.getLinha(), a.getNome());
                         }
                     }
                 }
@@ -100,8 +146,6 @@ public class Parser {
                     pilha.push("<att_choose>");
                     pilha.push("=");
                     pilha.push("<identifier>");
-                    isVariavel = true;
-
                 }
                 break;
             case "<att_choose>":
@@ -134,10 +178,22 @@ public class Parser {
                         }
                     } if(flag) {
                         Token b = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-                        if (b.getLexema().equals("identifier") && (!isSpecialSymbol(b.getNome()))) {
+                        if (b.getLexema().equals("identifier") && (!isSpecialSymbol(b.getNome())) && !isFuncao && !isChamada) {
                             if (validarEscopo(b)) {
                                 Escopo setar = new Escopo(this.escopoGeral.getId(), this.escopoGeral.getEscoposPai());
                                 b.setEscopo(setar);
+                            }
+                        }
+                        if (this.isFuncao && !this.isChamada) {
+                            if (this.matrizDeSimbolos.buscarFuncao(a.getNome()) != null){
+                                throw new JaDeclaradoError(this.matrizDeSimbolos.buscarFuncao(a.getNome()).getLinha(),
+                                        a.getNome());
+                            }
+                            if (this.paramsFunc.size() == 1) {
+                                Escopo temp = new Escopo(this.escopoGeral.getId(), this.escopoGeral.getEscoposPai());
+                                a.setEscopo(temp);
+                                this.matrizDeSimbolos.addFuncao(a);
+                                this.funcaoAtual = a;
                             }
                         }
                         incrementaPosToken();
@@ -156,10 +212,24 @@ public class Parser {
                         func.setParametros(paramTemp);
                         this.paramsFunc.clear();
                     }
+                    if (isDeclaracao){
+                        String tipo = this.tipoAtual;
+                        this.variavelAtual.setRetornoFuncao(tipo);
+                    }
+                    if (isExpressao){
+                        if (this.expressao.size() > 2){
+                            if (this.expressao.size() == 4){
+
+                            } else {
+
+                            }
+
+                        }
+                    }
+                    this.isExpressao = false;
                     this.isFuncao = false;
                     this.isDeclaracao = false;
                     this.isPrograma = false;
-                    isVariavel = false;
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -233,7 +303,6 @@ public class Parser {
                         pilha.push("<variable_declaration_part_optional>");
                         pilha.push("<identifier>");
                         pilha.push("<predefined_identifier>");
-                        isVariavel = true;
                     // TEM QUE ADICIONAR O ESCOPO + VALOR SEMÂNTICO!!!!!!
                 } //Else: <empty>
                 break;
@@ -259,7 +328,6 @@ public class Parser {
                     pilha.push("<identifier>");
                     pilha.push("<predefined_identifier_procedure>");
                     pilha.push("procedure");
-                    this.isPrograma = true;
                 } //Else: <empty>
                 break;
             case "<procedure_declaration>:":
@@ -298,7 +366,6 @@ public class Parser {
                 break;
             case "procedure":
                 if (lookAhead("procedure")) {
-                    this.isPrograma = true;
                     this.isFuncao = true;
                     incrementaPosToken();
                 } else {
@@ -328,9 +395,26 @@ public class Parser {
                 break;
             case "<parameter>":
                 if (lookAhead(",")) {
+                    pilha.push("<parameter>");
                     pilha.push("<variable_parameter>");
                     pilha.push(",");
                 } //Else: <Empty>
+                break;
+            case "<call_parameters>":
+                this.pilha.push("<param>");
+                this.pilha.push("<call_param>");
+                break;
+            case "<param>":
+                if (lookAhead(",")) {
+                    this.pilha.push("<param>");
+                    this.pilha.push("<call_param>");
+                    this.pilha.push(",");
+                }
+                break;
+            case "<call_param>":
+                if (!isSpecialSymbol(a.getNome())){
+                    pilha.push("<identifier>");
+                }
                 break;
             case "<detour_statement>":
                 if (lookAhead("break")) {
@@ -348,7 +432,7 @@ public class Parser {
                 break;
             case "<procedure_identifier>":
                 pilha.push(")");
-                pilha.push("<parameters>");
+                pilha.push("<call_parameters>");
                 pilha.push("(");
                 pilha.push("<identifier>");
                 break;
@@ -360,7 +444,6 @@ public class Parser {
                 pilha.push("write");
                 break;
             case "<write_params>":
-                isVariavel = true;
                 if (lookAhead("call")){
                     pilha.push("<procedure_statement>");
                 } else if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
@@ -467,6 +550,7 @@ public class Parser {
                 }
                 break;
             case "<factor>":
+                this.expressao.add(a);
                 if (lookAhead("(")) {
                     pilha.push(")");
                     pilha.push("<expression>");
@@ -534,6 +618,7 @@ public class Parser {
                 }
                 break;
             case "<identifier_or_value>":
+                this.isExpressao = true;
                 if (lookAhead("true") || lookAhead("false")){
                     pilha.push("<boolean_value>");
                 } else{
@@ -562,6 +647,7 @@ public class Parser {
 
             case "(":
                 if (lookAhead("(")){
+                    this.isChamada = false;
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -569,6 +655,14 @@ public class Parser {
                 break;
             case ")":
                 if (lookAhead(")")){
+                    if (analiseParams){
+                        if (this.qtdparams < this.funcaoAtualChamada.getParametros().size()){
+                            throw new UnderflowParamsError(a.getLinha(), a.getNome());
+                        }
+                    }
+                    this.funcaoAtualChamada = null;
+                    this.analiseParams = false;
+                    this.isChamada = false;
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -748,7 +842,7 @@ public class Parser {
                 break;
             case "call":
                 if (lookAhead("call")){
-                    this.isPrograma = true;
+                    this.isChamada = true;
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -856,6 +950,7 @@ public class Parser {
                 break;
             case "<variable_parameter>":
                 if (lookAhead("Integer") || lookAhead("Boolean")){
+                    this.isDeclaracao = false;
                     pilha.push("<identifier>");
                     pilha.push("<predefined_identifier>");
                  } else {
@@ -883,7 +978,7 @@ public class Parser {
     }
 
 
-    private void analiseSintatica() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
+    private void analiseSintatica() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError {
         String atual = pilha.pop();
         while (!atual.equals("$")){
             analisaRegra(atual);
@@ -892,8 +987,9 @@ public class Parser {
         }
         if (lookAhead("$")){
             System.out.println("SUCESSO!");
-            for (Token a: this.matrizDeSimbolos.vars()) {
-                System.out.println(a.getRetornoFuncao());
+            for (Token a: this.matrizDeSimbolos.funcs()) {
+                //System.out.println(a.getParametros());
+                //System.out.println(a.getNome());
             }
         } else {
             System.out.println("ERRO DE SINTAXE!!!");
@@ -945,7 +1041,7 @@ public class Parser {
 
     private boolean validarEscopo(Token b) throws JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError {
         boolean valido = true;
-        Token validacao = matrizDeSimbolos.buscarToken(linhaAtual, colunaAtual);
+        Token validacao = matrizDeSimbolos.buscarVariavel(b.getNome());
         if (this.isPrograma) {
             return false;
         }
@@ -966,19 +1062,53 @@ public class Parser {
                     validacao.getEscopo().addEscopo(this.escopoGeral.getId());
                     return true;
                 } else {
-                    System.out.println(isDeclaracao);
                     throw new JaDeclaradoError(validacao.getLinha(), validacao.getNome());
                 }
             }
         }
         if (this.isDeclaracao){
             if (this.matrizDeSimbolos.buscarVariavel(b.getNome()) == null){
-                System.out.println(b.getNome());
                 this.matrizDeSimbolos.addVariavel(b);
                 this.variavelAtual = b;
+                b.setRetornoFuncao(this.tipoAtual);
+                this.isDeclaracao = false;
             }
         }
             return valido;
+        }
+
+        public boolean analisaEscopoFuncao(Token func) throws EscopoInacessivelError, FuncaoNaoDeclaradaError {
+        Token validacao = this.matrizDeSimbolos.buscarFuncao(func.getNome());
+            if (validacao != null) {
+                if (validacao.isDeclarada()) {
+                    if (this.escopoGeral.getEscoposPai().contains(validacao.getEscopo().getId())){
+                        this.funcaoAtualChamada = validacao;
+                        return true;
+                    } else {
+                        throw new EscopoInacessivelError(validacao.getLinha(), validacao.getNome());
+                    }
+                } else {
+                    throw new FuncaoNaoDeclaradaError(func.getLinha(), func.getNome());
+                }
+            }
+        return true;
+        }
+
+        public boolean analisaParam(Token param) throws NaoDeclaradoError, EscopoInacessivelError {
+        Token validacao = this.matrizDeSimbolos.buscarVariavel(param.getNome());
+        if (validacao != null){
+            if (this.escopoGeral.getEscoposPai().contains(validacao.getEscopo().getId())) {
+                return true;
+            } else {
+                throw new EscopoInacessivelError(param.getLinha(), param.getNome());
+            }
+        } else {
+            throw new NaoDeclaradoError(param.getLinha(), param.getNome());
+        }
+        }
+
+        public void analiseDeExpressao(){
+
         }
 
 }

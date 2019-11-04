@@ -1,3 +1,5 @@
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+
 import java.util.ArrayList;
 
 public class MatrizDeSimbolos implements IMatrizDeSimbolos{
@@ -47,15 +49,26 @@ public class MatrizDeSimbolos implements IMatrizDeSimbolos{
 
     @Override
     public Token buscarVariavel(String nomeDaVariavel){
-        for (Token a: variaveis)
-            return a.getNome().equals(nomeDaVariavel) ? a : null;
+        for (Token a: variaveis) {
+            if (a.getNome().toCharArray().length == 0) {
+                if (a.getNome() == nomeDaVariavel){
+                    return a;
+                }
+            } else {
+                if (a.getNome().equals(nomeDaVariavel)){
+                    return a;
+                }
+            }
+        }
         return null;
     }
 
     @Override
     public Token buscarFuncao(String nomeDaFuncao){
         for (Token a : funcoes){
-            return a.getNome().equals(nomeDaFuncao) ? a : null;
+            if (a.getNome().equals(nomeDaFuncao)){
+                return a;
+            }
         }
         return null;
     }

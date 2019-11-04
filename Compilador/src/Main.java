@@ -29,8 +29,15 @@ public class Main {
             naoDeclaradoError.mostrarErro();
         } catch (EscopoInacessivelError escopoInacessivelError){
             escopoInacessivelError.mostrarErro();
+        } catch (FuncaoNaoDeclaradaError funcaoNaoDeclaradaError) {
+            funcaoNaoDeclaradaError.mostrarErro();
+        } catch (TypeError typeError) {
+            typeError.mostrarErro();
+        } catch (OverflowParamsError overflowParamsError) {
+            overflowParamsError.mostrarErro();
+        } catch (UnderflowParamsError underflowParamsError) {
+            underflowParamsError.mostrarErro();
         }
-
 
 
         //lex.lerCodigoFonte("/home/antonio/Documentos/Comp/Compilador/src/teste.txt");
