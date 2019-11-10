@@ -37,6 +37,16 @@ public class Main {
             overflowParamsError.mostrarErro();
         } catch (UnderflowParamsError underflowParamsError) {
             underflowParamsError.mostrarErro();
+        } catch (ParamRepeatError paramRepeatError) {
+            paramRepeatError.mostrarErro();
+        } catch (MissingReturnError missingReturnError) {
+            if (missingReturnError.retIncorreto()) {
+                missingReturnError.retornoIncorreto();
+            } else {
+                missingReturnError.erroFaltaRetorno();
+            }
+        } catch (RetornoIndesejadoError retornoIndesejadoError) {
+            retornoIndesejadoError.mostrarErro();
         }
 
 

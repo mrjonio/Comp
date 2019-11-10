@@ -115,6 +115,8 @@ public class Lexer {
                 return "and_operator";
             case "div":
                 return "div_operator";
+            case "==":
+                return "equals_operator";
             case "=":
                 return "=_operator";
             case "<>":

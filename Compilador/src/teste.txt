@@ -19,7 +19,7 @@ while (true) do:
     if a = b then:
         if a = b then:
         Integer q = 90;
-            write (q);
+        write ( q );
         endif;
         v = 11;
     else:
@@ -35,6 +35,8 @@ if a = b then:
 endif;
 Integer j = 1;
 j = 3;
+Boolean oi = true;
+return oi;
 end;
 Integer j;
 j = 8;
