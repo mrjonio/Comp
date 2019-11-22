@@ -1,0 +1,66 @@
+t1 = 1 + 1
+a = t1
+x = false
+b = 10
+bonita = 9
+bomdia = 10
+LCALL _Print bomdia
+goto + _func0
+main : 
+beginfunc:
+_while0: 
+t1 = true
+if (true) goto _stat0
+ifnot (true) goto _stat1
+_stat0:
+j = 1
+_while1: 
+t0 = b > a
+if (t0) goto _stat2
+ifnot (t0) goto _stat3
+_stat2:
+a = a
+param b
+param x
+b =  call main,2
+v = 10
+_if0: 
+t0 = a == b
+if (t0) goto _stat4
+ifnot (t0) goto _stat5
+_stat4:
+_if1: 
+t0 = a == b
+if (t0) goto _stat6
+ifnot (t0) goto _stat7
+_stat6:
+q = 90
+LCALL _Print q
+q = 11
+goto _generic1
+_stat7:
+aaaaaa = true
+LCALL _Print aaaaaa
+goto next
+_generic1: 
+_stat5:
+_generic0: 
+goto _while1
+_stat3:
+goto _while0
+_stat1:
+_if2: 
+t0 = a == b
+if (t0) goto _stat8
+ifnot (t0) goto _stat9
+_stat8:
+j = 10
+_stat9:
+_generic2: 
+j = 50
+oi = true
+return oi;
+return oi;
+Endfunc
+_func0:
+j = 8

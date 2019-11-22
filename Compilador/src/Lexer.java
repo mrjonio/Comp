@@ -11,7 +11,7 @@ public class Lexer {
     private ArrayList tokenAtual;
 
     public Lexer(int tamLinha, int tamColuna) {
-        this.line = 0;
+        this.line = 1;
         this.tamAtual = 0;
         this.tokenAtual = new ArrayList();
         this.matriz = new MatrizDeSimbolos(tamLinha, tamColuna);
@@ -113,7 +113,7 @@ public class Lexer {
                 return "*_operator";
             case "and":
                 return "and_operator";
-            case "div":
+            case "/":
                 return "div_operator";
             case "==":
                 return "equals_operator";

@@ -5,12 +5,12 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        Lexer lex = new Lexer(200, 200);
+        Lexer lex = new Lexer(400, 400);
         String resourcePath = null;
         switch (System.getProperty("os.name")) {
             case "Linux":  resourcePath = "/home/antonio/Documentos/Comp/Compilador/src/teste.txt";
                 break;
-            case "Windows 10":  resourcePath = "C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste2.txt";
+            case "Windows 10":  resourcePath = "C:\\Users\\carlo\\Documents\\Antônio-Adelino_Carlos-Antônio\\Comp\\Compilador\\src\\teste.txt";
                 break;
         }
         lex.lerCodigoFonte(resourcePath);
@@ -47,6 +47,10 @@ public class Main {
             }
         } catch (RetornoIndesejadoError retornoIndesejadoError) {
             retornoIndesejadoError.mostrarErro();
+        } catch (AritmeticError aritmeticError) {
+            aritmeticError.exibirMensagemErro();
+        } catch (DivisaoPorZeroError divisaoPorZeroError) {
+            divisaoPorZeroError.mostrarErro();
         }
 
 

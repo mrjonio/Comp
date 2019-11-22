@@ -5,7 +5,6 @@ Integer bonita;
 Integer b = 10;
 bonita = 9;
 Integer c;
-procedure Void new();
 Integer bomdia = 10;
 write( bomdia );
 procedure Boolean main ( Integer xou, Boolean cabo ):
@@ -23,7 +22,7 @@ while (true) do:
         endif;
         v = 11;
     else:
-        Boolean aaaaaa =  10;
+        Boolean aaaaaa =  true;
         write(aaaaaa);
         continue;
     endelse;
@@ -33,8 +32,7 @@ endwhile;
 if a = b then:
     Integer j = 10;
 endif;
-Integer j = 1;
-j = 3;
+Integer j = 50;
 Boolean oi = true;
 return oi;
 end;

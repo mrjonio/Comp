@@ -1,5 +1,6 @@
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.function.ToLongBiFunction;
@@ -26,16 +27,21 @@ public class Parser {
     private int qtdparams;
     private Token funcaoAtualChamada;
     private boolean isExpressao;
-    private ArrayList<Token> expressao;
+    private ArrayList<String> expressao;
     private ArrayList<String> paramsNames;
     private boolean analiseRep;
     private Token funcaoVarsEscopo;
     private ArrayList<String> paramsEscopoFuncao;
     private boolean analiseReturn;
     private boolean isLogica;
-    private ArrayList<Token> logica;
+    private ArrayList<String> logica;
+    private boolean isWrite;
+    private boolean nPassar;
+    private int complPar;
+    private AritmeticOps espe;
+    private ContadoresTraducao conts;
 
-    public Parser(int linhaAtual, int colunaAtual, IMatrizDeSimbolos matrizDeSimbolos) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError {
+    public Parser(int linhaAtual, int colunaAtual, IMatrizDeSimbolos matrizDeSimbolos) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError, AritmeticError, DivisaoPorZeroError {
         this.linhaAtual = linhaAtual;
         this.colunaAtual = colunaAtual;
         this.pilha = new Stack<String>();
@@ -64,10 +70,19 @@ public class Parser {
         this.analiseReturn = false;
         this.isLogica = false;
         this.logica = new ArrayList<>();
+        this.isWrite = false;
+        this.nPassar = false;
+        this.complPar = 0;
+        this.espe = new AritmeticOps();
+        try {
+            this.conts = new ContadoresTraducao();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         iniciar();
     }
 
-    private void iniciar() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError {
+    private void iniciar() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError, AritmeticError, DivisaoPorZeroError {
         pilha.push("$");
         pilha.push("<program>");
         String regra;
@@ -81,10 +96,10 @@ public class Parser {
     }
 
 
-    private void analisaRegra(String regraAtual) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError {
+    private void analisaRegra(String regraAtual) throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError, AritmeticError, DivisaoPorZeroError {
         arvore.add(regraAtual);
         Token a = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
-        //System.out.println( regraAtual + " " + pilha.peek() + " " + this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor());
+        System.out.println( regraAtual + " " + pilha.peek() + " " + this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor());
         switch (regraAtual) {
             case "<program>":
                 pilha.push(".");
@@ -108,6 +123,11 @@ public class Parser {
                 if (this.analiseRep){
                     analiseRepeat(a);
                 }
+                if (this.isFuncao && !this.isChamada){
+                    if (funcaoAtual != null){
+                        this.funcaoAtual.nomeParams.add(a.getNome());
+                    }
+                }
 
                 if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) && !this.isFuncao){
                     if (a.getLexema().equals("identifier") && !(isSpecialSymbol(a.getNome())) && !this.isChamada) {
@@ -129,9 +149,13 @@ public class Parser {
                         }
                     }
 
+
+
+
                     if (isChamada){
                         if (analisaEscopoFuncao(a)){
                             analiseParams = true;
+                            this.conts.funcatt = a.getNome();
                             this.paramsFunc.clear();
                             break;
                         }
@@ -144,6 +168,7 @@ public class Parser {
                                     if (matrizDeSimbolos.buscarVariavel
                                             (a.getNome()).getRetornoFuncao().equals(this.funcaoAtualChamada.getParametros().get(this.qtdparams))) {
                                         qtdparams++;
+                                        this.conts.traduzida.add("param " + a.getNome());
                                         analiseParams = true;
                                     } else {
                                         throw new TypeError(a.getLinha(), a.getNome());
@@ -166,6 +191,7 @@ public class Parser {
                     pilha.push("<att_choose>");
                     pilha.push("=");
                     pilha.push("<identifier>");
+                    this.conts.varatt = a.getNome() + " = ";
                 }
                 break;
             case "<att_choose>":
@@ -198,6 +224,13 @@ public class Parser {
                         }
                     } if(flag) {
                         Token b = this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual);
+                        if (!this.isFuncao && !this.isChamada && isExpressao && !isLogica && !isWrite && !nPassar){
+                            //System.out.println(a.getNome());
+                            this.expressao.add(a.getNome());
+                        }
+                        if (isLogica){
+                            this.logica.add(a.getNome());
+                        }
                         if (b.getLexema().equals("identifier") && (!isSpecialSymbol(b.getNome())) && !isFuncao && !isChamada) {
                             if (validarEscopo(b)) {
                                 Escopo setar = new Escopo(this.escopoGeral.getId(), this.escopoGeral.getEscoposPai());
@@ -217,6 +250,7 @@ public class Parser {
                                 this.funcaoAtual = a;
                             }
                         }
+
                         incrementaPosToken();
                     } else {
                         //Else: empty
@@ -237,17 +271,204 @@ public class Parser {
                         String tipo = this.tipoAtual;
                         this.variavelAtual.setRetornoFuncao(tipo);
                     }
-                    if (isExpressao){
-                        if (this.expressao.size() > 2){
-                            if (this.expressao.size() == 4){
+
+                    if (isExpressao && !isLogica){
+                        for (int i = 0; i < this.expressao.size(); i++){
+                            //System.out.print(this.expressao.get(i) + " ");
+                        }
+                        //System.out.println();
+                        if (this.expressao.size() >= 1){
+                            if (this.expressao.size() == 1){
+                                if (this.variavelAtual.getRetornoFuncao().equals("Boolean")){
+                                    if (!this.expressao.get(0).equals("true") && !this.expressao.get(0).equals("false")){
+                                        throw new TypeError(a.getLinha(), "Boolean");
+                                    }
+                                } else {
+                                    if (this.variavelAtual.getRetornoFuncao().equals("Integer")){
+                                        if ((this.expressao.get(0).equals("true") || this.expressao.get(0).equals("false")))
+                                        {
+                                            throw new TypeError(a.getLinha(), "Integer");
+                                        }
+                                    }
+                                }
 
                             } else {
+                                if (this.variavelAtual.getRetornoFuncao().equals("Integer") && (this.expressao.contains("true") || this.expressao.contains("false"))) {
+                                    throw new AritmeticError(this.variavelAtual.getNome(), a.getLinha());
+                                } else if (this.variavelAtual.getRetornoFuncao().equals("Boolean")) {
+                                    boolean fl = false;
+                                    for (String ex : expressao) {
+                                        if (!ex.equals("true") && !ex.equals("false")) {
+                                            fl = true;
+                                            break;
+                                        }
+                                    }
+                                    if (fl) {
+                                        throw new AritmeticError(this.variavelAtual.getNome(), a.getLinha());
+                                    }
+                                }
+                            }
+                            if (this.variavelAtual.getRetornoFuncao().equals("Integer")) {
+                                for (String ex : expressao) {
+                                    if (ex.equals("and") || ex.equals("or")) {
+                                        throw new AritmeticError( variavelAtual.getNome(),a.getLinha());
+                                    }
+                                }
+                            }
+                            boolean tem = true;
+                            int inicalPar = 0;
+                            while (tem) {
+                                tem = false;
+                                for (int i = inicalPar; i < expressao.size(); i++) {
+                                    if ((this.expressao.get(i).equals("*")  || this.expressao.get(i).equals("/")) &&
+                                            !this.expressao.get(i - 1).equals(")") && !this.expressao.get(i + 1).equals("(")
+                                    && (i - 2 > 0 && !this.expressao.get(i - 2).equals("("))) {
+                                        tem = true;
+                                        this.expressao.add(i + 2, ")");
+                                        this.expressao.add(i - 1, "(");
+                                        inicalPar = i + 2;
+                                        break;
+                                    }
+                                }
+                            }
+                            int control = 1;
+                            this.espe.temp.addAll(expressao);
+                            this.espe.temp.add(")");
+                            this.expressao.clear();
+                            this.expressao.addAll(this.espe.temp);
+                            //System.out.println(expressao);
+                            boolean paren = true;
+                            while (paren) {
+                                paren = false;
+                                int idex = 0;
+                                boolean ant = false;
+                                int fecho = 0;
+
+                                for (int i = 0; i < expressao.size(); i++){
+                                    if (this.expressao.get(i).equals("-") &&
+                                            !this.expressao.get(i + 1).equals("(")){
+                                        this.expressao.set(i, "+");
+                                        String exp = "( -" + this.expressao.get(i + 1) + " )";
+                                        this.expressao.set(i + 1, exp);
+                                    }
+                                }
+
+                                for (int i = 0; i < expressao.size(); i++) {
+                                    if (expressao.get(i).equals("(")){
+                                        if (i - 1 > 0){
+                                            if (!expressao.get(i - 1).equals("(")){
+                                                ant = true;
+                                            }
+                                        }
+                                        paren = true;
+                                        idex = i;
+                                    }
+                                }
+
+                                for (int i = idex; i < expressao.size(); i++){
+                                    if (!expressao.get(i).equals(")")){
+                                        if (!expressao.get(i).equals("(")) {
+                                            this.espe.expressaoCorreta.add(expressao.get(i));
+                                        }
+                                    } else {
+                                        expressao.remove(i);
+                                        fecho = i - 1;
+                                        break;
+                                    }
+                                }
+
+                                if (this.expressao.get(idex).equals("(")){
+                                    this.expressao.remove(idex);
+                                }
+
+                                boolean aindaTem = true;
+                                while (aindaTem) {
+                                    aindaTem = false;
+                                    for (int i = idex; i < fecho; i++) {
+                                        if (expressao.get(i).equals("*") || expressao.get(i).equals("/")) {
+                                            if (expressao.get(i).equals("/")){
+                                                if (expressao.get(i + 1).equals("0")){
+                                                    throw new DivisaoPorZeroError(a.getLinha());
+                                                }
+                                            }
+                                            aindaTem = true;
+                                            String register = "t" + control;
+                                            control++;
+                                            String exp = register + " = " + expressao.get(i - 1)
+                                                    + " " + expressao.get(i) + " " + expressao.get(i + 1);
+                                            //System.out.println(exp);
+                                            this.espe.pais.add(exp);
+                                            expressao.set(i - 1, register);
+                                            fecho--;
+                                            fecho--;
+                                            expressao.remove(i);
+                                            expressao.remove(i);
+                                            break;
+                                        }
+                                    }
+                                }
+                                //System.out.println(this.expressao);
+                                if (fecho != idex){
+                                    while (fecho > idex){
+                                        fecho--;
+                                    }
+                                    if (ant){
+                                        this.espe.expressaoCorreta.add(expressao.get(idex - 1));
+                                    }
+                                }
 
                             }
+                            //System.out.println(expressao);
+                            int c = this.expressao.size();
+                            while(c > 1){
+                                for (int i = 0; i < c; i++){
+                                    if (expressao.get(i).equals("-") || expressao.get(i).equals("+")){
+                                        String register = "t" + control;
+                                        String exp = register + " = " + expressao.get(i - 1) + " " +
+                                                expressao.get(i) + " " + expressao.get(i + 1);
+                                        this.espe.pais.add(exp);
+                                        this.expressao.set(i - 1, register);
+                                        this.expressao.remove(i);
+                                        this.expressao.remove(i);
+                                        //System.out.println(exp);
+                                        control++;
+                                        c--;
+                                        c--;
+                                        break;
+                                    }
+                                }
+                                if (c == 3 && expressao.get(0).equals("(")){
+                                    expressao.remove(0);
+                                    expressao.remove(1);
+                                    c--;
+                                    c--;
+                                }
+                            }
+                            String fnal = this.variavelAtual.getNome() + " = " + expressao.get(0);
+                            this.espe.pais.add(fnal);
+                            //System.out.println(espe.pais);
 
                         }
                     }
+
+                    if (this.conts.funcatt != null){
+                        Token fu = this.matrizDeSimbolos.buscarFuncao(this.conts.funcatt);
+                        this.conts.funcatt = " call " + fu.getNome() + "," + fu.getParametros().size();
+                        if (this.conts.varatt != null){
+                            this.conts.funcatt = this.conts.varatt + this.conts.funcatt;
+                        }
+                        this.conts.traduzida.add(this.conts.funcatt);
+                    }
+                    this.conts.funcatt = null;
+                    this.conts.varatt = null;
+                    this.conts.traduzida.addAll(this.espe.pais);
+                    this.logica.clear();
+                    this.espe.limpaTemp();
+                    this.espe.expressaoCorreta.clear();
+                    this.espe.pais.clear();
+                    this.nPassar = false;
                     this.isExpressao = false;
+                    this.expressao.clear();
                     this.isFuncao = false;
                     this.isDeclaracao = false;
                     this.isPrograma = false;
@@ -325,6 +546,11 @@ public class Parser {
                             throw new RetornoIndesejadoError(this.funcaoVarsEscopo.getNome());
                         }
                     }
+                    this.conts.traduzida.add("Endfunc");
+                    if (this.conts.funcRet.size() > 0) {
+                        this.conts.traduzida.add(this.conts.funcRet.get(0));
+                        this.conts.funcRet.remove(0);
+                    }
                     this.funcaoVarsEscopo = null;
                     this.paramsEscopoFuncao.clear();
                     this.escopoGeral.decrementar();
@@ -382,14 +608,13 @@ public class Parser {
                 }
                 break;
             case "<procedure_end>":
-                if (lookAhead(";")){
-                    pilha.push("<block>");
-                    pilha.push(";");
-                } if (lookAhead(":")){
+                if (lookAhead(":")){
                     pilha.push("<procedure_final>");
                     pilha.push("<procedure_declaration>");
                     pilha.push(":");
-            }
+                } else {
+                    throw new FuncaoNaoDeclaradaError(a.getLinha(), funcaoAtual.getNome());
+                }
             break;
             case "<procedure_final>":
                 if (lookAhead("end")){
@@ -482,12 +707,13 @@ public class Parser {
                 pilha.push("write");
                 break;
             case "<write_params>":
-                if (lookAhead("call")){
-                    pilha.push("<procedure_statement>");
-                } else if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
+                if (!isSpecialSymbol(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor()) &&
                         (isALetter(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0)) ||
                                 isADigit(this.matrizDeSimbolos.getTokenNaPosicao(linhaAtual, colunaAtual).getValor().charAt(0)))){
                     pilha.push("<identifier_or_value>");
+                     String old = this.conts.traduzida.get(this.conts.traduzida.size() - 1);
+                     old = old + " " + a.getNome();
+                     this.conts.traduzida.set(this.conts.traduzida.size() - 1, old);
                 }
                 break;
             case "<structured_statement>":
@@ -535,7 +761,6 @@ public class Parser {
 
             //Antônio//
             case "<expression>":
-
                 if (lookAhead("true") || lookAhead("false")){
                     pilha.push("<boolean_value>");
                 }else{                
@@ -567,7 +792,7 @@ public class Parser {
             case "<simple_expression_complement>":
                 if (lookAhead("+") || lookAhead("-") || lookAhead("or")){
                     pilha.push("<adding_operator1>");
-                } else if (lookAhead("*") || lookAhead("div") || lookAhead("and")){
+                } else if (lookAhead("*") || lookAhead("/") || lookAhead("and")){
                     pilha.push("<multiplying_operator1>");
                 } //Else: empty
                 break;
@@ -580,7 +805,7 @@ public class Parser {
                 }
                 break;
             case "<multiplying_operator1>":
-                if (lookAhead("*") || lookAhead("div") || lookAhead("and")) {
+                if (lookAhead("*") || lookAhead("/") || lookAhead("and")) {
                     pilha.push("<expression>");
                     pilha.push("<multiplying_operator>");
                 } else {
@@ -588,7 +813,6 @@ public class Parser {
                 }
                 break;
             case "<factor>":
-                this.expressao.add(a);
                 if (lookAhead("(")) {
                     pilha.push(")");
                     pilha.push("<expression>");
@@ -624,10 +848,19 @@ public class Parser {
                 } //Else: empty
                 break;
             case "<adding_operator>":
+                if (!this.isLogica && this.isExpressao) {
+                    this.expressao.add(a.getNome());
+                }
                 if (lookAhead("+")) {
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     pilha.push("+");
                 }
                 if (lookAhead("-")) {
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     pilha.push("-");
                 }
                 if (lookAhead("or")) {
@@ -635,17 +868,27 @@ public class Parser {
                 } //Else: empty
                 break;
             case "<multiplying_operator>":
+                if (!this.isLogica && this.isExpressao) {
+                    this.expressao.add(a.getNome());
+                }
                 if (lookAhead("*")) {
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     pilha.push("*");
                 }
-                if (lookAhead("div")) {
-                    pilha.push("div");
+                if (lookAhead("/")) {
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
+                    pilha.push("/");
                 }
                 if (lookAhead("and")) {
                     pilha.push("and");
                 } //Else: empty
                 break;
             case "<predefined_identifier>":
+                this.isExpressao = true;
                 if (lookAhead("Integer")) {
                     pilha.push("Integer");
                 }
@@ -674,17 +917,32 @@ public class Parser {
                 } //Else: empty
                 break;
             case "<boolean_value>":
+                if (this.isExpressao && !this.isLogica && !this.nPassar){
+                    this.expressao.add(a.getNome());
+                }
+                if (this.isLogica){
+                    this.logica.add(a.getNome());
+                }
+
                 if (lookAhead("true")){
                     pilha.push("true");
                 } else if(lookAhead("false")){
                     pilha.push("false");
                 } else {
                     System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOOOOO");
+                    System.exit(1);
                 }
                 break;
 
             case "(":
                 if (lookAhead("(")){
+                    if (!this.isLogica && this.isExpressao) {
+                        this.expressao.add(a.getNome());
+                        this.complPar++;
+                    }
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     this.isChamada = false;
                     incrementaPosToken();
                 } else {
@@ -698,11 +956,19 @@ public class Parser {
                             throw new UnderflowParamsError(a.getLinha(), a.getNome());
                         }
                     }
+                    this.isWrite = false;
                     this.analiseRep = false;
                     this.paramsNames.clear();
                     this.funcaoAtualChamada = null;
                     this.analiseParams = false;
                     this.isChamada = false;
+                    if (!this.isLogica && this.isExpressao && this.complPar > 0) {
+                        this.expressao.add(a.getNome());
+                        this.complPar--;
+                    }
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -724,6 +990,10 @@ public class Parser {
                 break;
             case "=":
                 if (lookAhead("=")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
+                    this.nPassar = false;
                     if (isDeclaracao){
                         String tipo = this.tipoAtual;
                         this.variavelAtual.setRetornoFuncao(tipo);
@@ -740,8 +1010,8 @@ public class Parser {
                     throw new SintaxError(a.getLinha(), a.getValor());
                 }
                 break;
-            case "div":
-                if (lookAhead("div")){
+            case "/":
+                if (lookAhead("/")){
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -749,6 +1019,9 @@ public class Parser {
                 break;
             case "or":
                 if (lookAhead("or")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -756,6 +1029,9 @@ public class Parser {
                 break;
             case "and":
                 if (lookAhead("and")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -763,6 +1039,9 @@ public class Parser {
                 break;
             case ">":
                 if (lookAhead(">")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -770,6 +1049,9 @@ public class Parser {
                 break;
             case ">=":
                 if (lookAhead(">=")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -777,6 +1059,9 @@ public class Parser {
                 break;
             case "<=":
                 if (lookAhead("<=")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -784,6 +1069,9 @@ public class Parser {
                 break;
             case "<>":
                 if (lookAhead("<>")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -791,6 +1079,9 @@ public class Parser {
                 break;
             case "<":
                 if (lookAhead("<")){
+                    if (this.isLogica){
+                        this.logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -814,13 +1105,22 @@ public class Parser {
             case ":":
                 if (lookAhead(":")){
                     if (isFuncao){
+                        //System.out.println(this.funcaoAtual.nomeParams);
                         this.funcaoAtual.setDeclarada(true);
                         ArrayList<String> tempPara = (ArrayList<String>) this.paramsFunc.clone();
                         this.funcaoAtual.setRetornoFuncao(tempPara.get(0));
                         tempPara.remove(0);
                         this.funcaoAtual.setParametros(tempPara);
                         this.paramsFunc.clear();
+                        String got = "goto + " + "_func" + this.conts.funcAtual;
+                        this.conts.traduzida.add(got);
+                        this.conts.funcRet.add(this.conts.labelFunc + this.conts.funcAtual + ":");
+                        this.conts.funcAtual++;
+                        String name = funcaoAtual.getNome() + " : ";
+                        this.conts.traduzida.add(name);
+                        this.conts.traduzida.add("beginfunc:");
                     }
+                    this.isLogica = false;
                     this.isFuncao = false;
                     this.isPrograma = false;
                     incrementaPosToken();
@@ -830,6 +1130,7 @@ public class Parser {
                 break;
             case "while":
                 if (lookAhead("while")){
+                    this.isLogica = true;
                     this.escopoGeral.incrementar();
                     incrementaPosToken();
                 } else {
@@ -839,12 +1140,143 @@ public class Parser {
             case "do":
                 if (lookAhead("do")){
                     incrementaPosToken();
+                    if (logica.contains("+") || logica.contains("-") || logica.contains("*") || logica.contains("/")){
+                        throw new AritmeticError("Aritmetico", a.getLinha());
+                    }
+                    for (int i = 0; i < logica.size(); i++){
+                        if ( logica.size() == 3){
+                            if (logica.size() == 3 && (logica.get(0).equals("(") && logica.get(2).equals(")"))){
+                                logica.remove(0);
+                                logica.remove(1);
+                            }
+                        }
+                        if (logica.get(i).equals("<") || logica.get(i).equals(">") || logica.get(i).equals(">=")
+                                || logica.get(i).equals("<=") || logica.get(i).equals("=")){
+                            if (!isADigit(logica.get(i - 1).charAt(0))) {
+                                Token op1 = this.matrizDeSimbolos.buscarVariavel(logica.get(i - 1));
+                                if (op1 == null){
+                                    int k = 0;
+                                    for (int j = 0; j < paramsEscopoFuncao.size(); j++){
+                                        if (paramsEscopoFuncao.get(j).equals(logica.get(i - 1))){
+                                            k = j;
+                                            break;
+                                        }
+                                    }
+                                    if (!this.funcaoAtual.getParametros().get(k).equals("Integer")){
+                                        throw new TypeError(a.getLinha(), "Boolean");
+                                    }
+                                }
+                                else if (!op1.getRetornoFuncao().equals("Integer")){
+                                    throw new TypeError(a.getLinha(), "Boolean");
+                                }
+                            }
+                            if (!isADigit(logica.get(i + 1).charAt(0))) {
+                                Token op2 = this.matrizDeSimbolos.buscarVariavel(logica.get(i + 1));
+                                if (op2 == null){
+                                    int k = 0;
+                                    for (int j = 0; j < paramsEscopoFuncao.size(); j++){
+                                        if (paramsEscopoFuncao.get(j).equals(logica.get(i + 1))){
+                                            k = j;
+                                            break;
+                                        }
+                                    }
+                                    if (!this.funcaoAtual.getParametros().get(k).equals("Integer")){
+                                        throw new TypeError(a.getLinha(), "Boolean");
+                                    }
+                                }
+                                 else if (!op2.getRetornoFuncao().equals("Integer")){
+                                    throw new TypeError(a.getLinha(), "Boolean");
+                                }
+                            }
+                        }
+                    }
+                    if (this.logica.size() >= 1){
+                        if (this.logica.size() == 1){
+                            String exp = "t1 = " + this.logica.get(0);
+                            this.espe.expressaoCorreta.add(exp);
+                        } else {
+                            int c = logica.size();
+                            while (c > 1){
+                                for (int i = 0; i < c; i++) {
+                                    if (logica.get(i).equals("not")) {
+                                        String exp = "!=";
+                                        this.logica.set(i, exp);
+
+                                    }
+                                    if (this.logica.get(i).equals("=")) {
+                                        String exp = "==";
+                                        this.logica.set(i, exp);
+                                    }
+                                }
+                                Boolean tem = true;
+                                while (tem) {
+                                    tem = false;
+                                    for (int i = 0; i < c; i++) {
+                                        if (logica.get(i).equals(">") || logica.get(i).equals(">=") || logica.get(i).equals("<") || logica.get(i).equals("<=")) {
+                                            String register = "t" + this.espe.prioridade;
+                                            this.espe.prioridade++;
+                                            String exp = register + " = " + logica.get(i - 1) + " " + logica.get(i) + " " + logica.get(i + 1);
+                                            logica.set(i - 1, register);
+                                            logica.remove(i);
+                                            logica.remove(i);
+                                            c--;
+                                            c--;
+                                            this.espe.expressaoCorreta.add(exp);
+                                            tem = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                //System.out.println(logica);
+                                for (int i = 0; i < c; i++){
+                                    if ( logica.get(i).equals("and") || logica.get(i).equals("or") || logica.get(i).equals("==")
+                                    || logica.get(i).equals("!=") || logica.get(i).equals("not")){
+                                        String register = "t" + this.espe.prioridade;
+                                        this.espe.prioridade++;
+                                        String exp = register + " = " + logica.get(i - 1) + " " + logica.get(i) + " " + logica.get(i + 1);
+                                        logica.set(i - 1, register);
+                                        logica.remove(i);
+                                        logica.remove(i);
+                                        c--;
+                                        c--;
+                                        this.espe.expressaoCorreta.add(exp);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    this.conts.traduzida.add(this.conts.labelWhile + "" + this.conts.qtdWhile + ": ");
+                    this.conts.whileFinais.add(this.conts.labelWhile + "" + this.conts.qtdWhile);
+                    this.conts.qtdWhile++;
+                    this.conts.traduzida.addAll(this.espe.expressaoCorreta);
+                    this.conts.traduzida.add("if (" + this.logica.get(0) + ") goto "
+                            + this.conts.stat + "" + this.conts.statAtual);
+                    this.conts.iffinais.add(this.conts.stat + "" + this.conts.statAtual + ":");
+                    this.conts.statAtual++;
+                    this.conts.traduzida.add("ifnot (" + this.logica.get(0) + ") goto "
+                            + this.conts.stat + "" + this.conts.statAtual);
+                    this.conts.elsefinais.add(this.conts.stat + "" + this.conts.statAtual + ":");
+                    this.conts.statAtual++;
+                    String st = this.conts.iffinais.get(0);
+                    this.conts.traduzida.add(st);
+                    this.conts.iffinais.remove(0);
+                    this.espe.prioridade = 0;
+                    //System.out.println(espe.expressaoCorreta);
+                    this.espe.expressaoCorreta.clear();
+                    this.logica.clear();
+                    isLogica = false;
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
                 }
                 break;
             case "if":
                 if (lookAhead("if")){
+                    this.conts.temElse++;
+                    this.conts.ifStatement = true;
+                    this.conts.expressaoCrua.add(a.getNome());
+                    this.isLogica = true;
                     this.escopoGeral.incrementar();
                     incrementaPosToken();
                 } else {
@@ -853,6 +1285,128 @@ public class Parser {
             break;
             case "then":
                 if (lookAhead("then")){
+                    if (logica.contains("+") || logica.contains("-") || logica.contains("*") || logica.contains("/")){
+                        throw new AritmeticError("Aritmetico", a.getLinha());
+                    }
+                    for (int i = 0; i < logica.size(); i++){
+                        if (logica.get(i).equals("<") || logica.get(i).equals(">") || logica.get(i).equals(">=")
+                                || logica.get(i).equals("<=") || logica.get(i).equals("=")){
+                            if (!isADigit(logica.get(i - 1).charAt(0))) {
+                                Token op1 = this.matrizDeSimbolos.buscarVariavel(logica.get(i - 1));
+                                if (op1 == null){
+                                    int k = 0;
+                                    for (int j = 0; j < paramsEscopoFuncao.size(); j++){
+                                        if (paramsEscopoFuncao.get(j).equals(logica.get(i - 1))){
+                                            k = j;
+                                            break;
+                                        }
+                                    }
+                                    if (!this.funcaoAtual.getParametros().get(k).equals("Integer")){
+                                        throw new TypeError(a.getLinha(), "Boolean");
+                                    }
+                                }
+                                else if (!op1.getRetornoFuncao().equals("Integer")){
+                                    throw new TypeError(a.getLinha(), "Boolean");
+                                }
+                            }
+                            if (!isADigit(logica.get(i + 1).charAt(0))) {
+                                Token op2 = this.matrizDeSimbolos.buscarVariavel(logica.get(i + 1));
+                                if (op2 == null){
+                                    int k = 0;
+                                    for (int j = 0; j < paramsEscopoFuncao.size(); j++){
+                                        if (paramsEscopoFuncao.get(j).equals(logica.get(i + 1))){
+                                            k = j;
+                                            break;
+                                        }
+                                    }
+                                    if (!this.funcaoAtual.getParametros().get(k).equals("Integer")){
+                                        throw new TypeError(a.getLinha(), "Boolean");
+                                    }
+                                }
+                                else if (!op2.getRetornoFuncao().equals("Integer")){
+                                    throw new TypeError(a.getLinha(), "Boolean");
+                                }
+                            }
+                        }
+                    }
+                    if (this.logica.size() >= 1){
+                        if (this.logica.size() == 1){
+                            String exp = "t1 = " + this.logica.get(0);
+                            this.espe.expressaoCorreta.add(exp);
+                        } else {
+                            int c = logica.size();
+                            while (c > 1){
+                                for (int i = 0; i < c; i++) {
+                                    if (logica.get(i).equals("not")) {
+                                        String exp = "!=";
+                                        this.logica.set(i, exp);
+                                    }
+                                    if (this.logica.get(i).equals("=")) {
+                                        String exp = "==";
+                                        this.logica.set(i, exp);
+                                    }
+                                }
+                                Boolean tem = true;
+                                while (tem) {
+                                    tem = false;
+                                    for (int i = 0; i < c; i++) {
+                                        if (logica.get(i).equals(">") || logica.get(i).equals(">=") || logica.get(i).equals("<") || logica.get(i).equals("<=")) {
+                                            String register = "t" + this.espe.prioridade;
+                                            this.espe.prioridade++;
+                                            String exp = register + " = " + logica.get(i - 1) + " " + logica.get(i) + " " + logica.get(i + 1);
+                                            logica.set(i - 1, register);
+                                            logica.remove(i);
+                                            logica.remove(i);
+                                            c--;
+                                            c--;
+                                            this.espe.expressaoCorreta.add(exp);
+                                            tem = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                for (int i = 0; i < c; i++){
+                                    if (logica.get(i).equals("and") || logica.get(i).equals("or") || logica.get(i).equals("==")
+                                    || logica.get(i).equals("!=")){
+                                        String register = "t" + this.espe.prioridade;
+                                        this.espe.prioridade++;
+                                        String exp = register + " = " + logica.get(i - 1) + " " + logica.get(i) + " " + logica.get(i + 1);
+                                        logica.set(i - 1, register);
+                                        logica.remove(i);
+                                        logica.remove(i);
+                                        c--;
+                                        c--;
+                                        this.espe.expressaoCorreta.add(exp);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    this.conts.traduzida.add(this.conts.labelIf + "" + this.conts.qtdIf + ": ");
+                    this.conts.qtdIf++;
+                    this.conts.traduzida.addAll(this.espe.expressaoCorreta);
+                    this.conts.traduzida.add("if (" + this.logica.get(0) + ") goto "
+                            + this.conts.stat + "" + this.conts.statAtual);
+                    this.conts.iffinais.add(this.conts.stat + "" + this.conts.statAtual + ":");
+                    this.conts.statAtual++;
+                    this.conts.gotoGeral.add("_generic" + this.conts.contGeral);
+                    this.conts.contGeral++;
+                    this.conts.gen++;
+                    this.conts.traduzida.add("ifnot (" + this.logica.get(0) + ") goto "
+                            + this.conts.stat + "" + this.conts.statAtual);
+                    this.conts.elsefinais.add(this.conts.stat + "" + this.conts.statAtual + ":");
+                    this.conts.statAtual++;
+                    String st = this.conts.iffinais.get(0);
+                    this.conts.traduzida.add(st);
+                    this.conts.iffinais.remove(0);
+                    this.espe.prioridade = 0;
+                    this.espe.expressaoCorreta.clear();
+                    //System.out.println(logica);
+                    this.logica.clear();
+                    isLogica = false;
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -860,6 +1414,8 @@ public class Parser {
                 break;
             case "write":
                 if (lookAhead("write")){
+                    this.isWrite = true;
+                    this.conts.traduzida.add("LCALL _Print");
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -867,6 +1423,9 @@ public class Parser {
                 break;
             case "else":
                 if (lookAhead("else")){
+                    this.conts.traduzida.add("goto " + conts.gotoGeral.get(conts.gotoGeral.size() - 1));
+                    this.conts.traduzida.add(this.conts.elsefinais.get(this.conts.elsefinais.size() - 1));
+                    this.conts.elsefinais.remove(this.conts.elsefinais.size() - 1);
                     this.escopoGeral.incrementar();
                     incrementaPosToken();
                 } else {
@@ -875,6 +1434,21 @@ public class Parser {
                 break;
             case ".":
                 if (lookAhead(".")){
+                    for (String ab : this.conts.traduzida){
+                        try {
+                            conts.out.append(ab);
+                            conts.out.newLine();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    try {
+                        this.conts.out.close();
+                        this.conts.ntemnomemais.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -898,6 +1472,7 @@ public class Parser {
                 break;
             case "continue":
                 if (lookAhead("continue")){
+                    this.conts.traduzida.add("goto next");
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -905,7 +1480,11 @@ public class Parser {
                 break;
             case "break":
                 if (lookAhead("break")){
-                    this.escopoGeral.decrementar();
+                    if (this.conts.gotoGeral.size() > 0){
+                        this.conts.traduzida.add("goto " + this.conts.gotoGeral.get(this.conts.gotoGeral.size() - 1));
+                    } else {
+                        this.conts.traduzida.add("goto " + this.conts.elsefinais.get(this.conts.elsefinais.size() - 1));
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -913,6 +1492,9 @@ public class Parser {
                 break;
             case "not":
                 if (lookAhead("not")){
+                    if (this.isLogica){
+                        logica.add(a.getNome());
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -927,7 +1509,21 @@ public class Parser {
                 break;
             case "endif":
                 if (lookAhead("endif")){
+                    this.conts.temElse--;
+                    //System.out.println(conts.gotoGeral);
+                    if (conts.elsefinais.size() > 0 && conts.temElse == 0){
+                        this.conts.traduzida.add(this.conts.elsefinais.get(conts.elsefinais.size() - 1));
+                        this.conts.elsefinais.remove(conts.elsefinais.size() - 1);
+                        if (this.conts.gen > 0) {
+                            this.conts.traduzida.add(conts.gotoGeral.get(conts.gotoGeral.size() - 1) + ": ");
+                            this.conts.gotoGeral.remove(conts.gotoGeral.size() - 1);
+                            this.conts.gen--;
+                        }
+                    }
+
                     this.escopoGeral.decrementar();
+
+                    //System.out.println(this.conts.traduzida);
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -936,6 +1532,11 @@ public class Parser {
             case "endelse":
                 if (lookAhead("endelse")){
                     this.escopoGeral.decrementar();
+                    if (this.conts.gen > 0){
+                        this.conts.traduzida.add(conts.gotoGeral.get(conts.gotoGeral.size() - 1) + ": ");
+                        this.conts.gotoGeral.remove(conts.gotoGeral.size() - 1);
+                        this.conts.gen--;
+                    }
                     incrementaPosToken();
                 } else {
                     throw new SintaxError(a.getLinha(), a.getValor());
@@ -943,6 +1544,13 @@ public class Parser {
                 break;
             case "endwhile":
                 if (lookAhead("endwhile")){
+                    this.conts.traduzida.add("goto " + this.conts.whileFinais.get(this.conts.whileFinais.size() - 1));
+                    this.conts.whileFinais.remove(this.conts.whileFinais.size() - 1);
+                    if (conts.elsefinais.size() > 0 && conts.temElse == 0){
+                        this.conts.traduzida.add(this.conts.elsefinais.get(conts.elsefinais.size() - 1));
+                        this.conts.elsefinais.remove(conts.elsefinais.size() - 1);
+                    }
+
                     this.escopoGeral.decrementar();
                     incrementaPosToken();
                 } else {
@@ -952,6 +1560,7 @@ public class Parser {
             case "Integer":
                 if (lookAhead("Integer")){
                     incrementaPosToken();
+                    this.nPassar = true;
                     if (this.isFuncao){
                         this.paramsFunc.add(a.getNome());
                     }
@@ -963,6 +1572,7 @@ public class Parser {
                 }
                 break;
             case "Boolean":
+                this.nPassar = true;
                 if (lookAhead("Boolean")){
                     incrementaPosToken();
                     if (this.isFuncao){
@@ -1019,7 +1629,7 @@ public class Parser {
     }
 
 
-    private void analiseSintatica() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError {
+    private void analiseSintatica() throws SintaxError, JaDeclaradoError, NaoDeclaradoError, EscopoInacessivelError, FuncaoNaoDeclaradaError, TypeError, OverflowParamsError, UnderflowParamsError, ParamRepeatError, MissingReturnError, RetornoIndesejadoError, AritmeticError, DivisaoPorZeroError {
         String atual = pilha.pop();
         while (!atual.equals("$")){
             analisaRegra(atual);
@@ -1034,6 +1644,7 @@ public class Parser {
             }
         } else {
             System.out.println("ERRO DE SINTAXE!!!");
+            System.exit(1);
         }
     }
 
@@ -1051,7 +1662,7 @@ public class Parser {
     }
 
     private boolean isPalavraReservada(String valor){
-        return valor.equals("div") || valor.equals("or") || valor.equals("and") || valor.equals("not") || valor.equals("if") ||
+        return valor.equals("/") || valor.equals("or") || valor.equals("and") || valor.equals("not") || valor.equals("if") ||
                 valor.equals("then") || valor.equals("else") || valor.equals("while") || valor.equals("do") || valor.equals("begin") ||
                 valor.equals("end") || valor.equals("write") || valor.equals("procedure") || valor.equals("program") || valor.equals("break") ||
                 valor.equals("continue") || valor.equals("return") || valor.equals("Boolean") || valor.equals("Integer") || valor.equals("true") ||
@@ -1059,7 +1670,7 @@ public class Parser {
     }
 
     private boolean isSpecialSymbol(String valor){
-        return valor.equals("div") || valor.equals("or") || valor.equals("and") || valor.equals("not") || valor.equals("if") ||
+        return valor.equals("/") || valor.equals("or") || valor.equals("and") || valor.equals("not") || valor.equals("if") ||
                 valor.equals("then") || valor.equals("else") || valor.equals("while") || valor.equals("do") || valor.equals("begin") ||
                 valor.equals("end") || valor.equals("write") || valor.equals("procedure") || valor.equals("program") || valor.equals("break") ||
                 valor.equals("continue") || valor.equals("return") || valor.equals("Boolean") || valor.equals("Integer") || valor.equals("call") ||
@@ -1089,6 +1700,7 @@ public class Parser {
         if (!isDeclaracao) {
             valido = false;
             if (validacao != null) {
+                this.variavelAtual = validacao;
                 if (this.escopoGeral.getEscoposPai().contains(validacao.getEscopo().getId())) {
                     return true;
                 } else {
@@ -1124,6 +1736,7 @@ public class Parser {
                             if (t.getEscopo() != null) {
                                 if (this.escopoGeral.getEscoposPai().contains(t.getEscopo().getId())) {
                                     if (this.funcaoVarsEscopo.getRetornoFuncao().equals(t.getRetornoFuncao())) {
+                                        this.conts.traduzida.add("return " + t.getNome() + ";");
                                         return true;
                                     } else {
                                         throw new MissingReturnError(funcaoVarsEscopo.getNome(), funcaoVarsEscopo.getRetornoFuncao(), t.getRetornoFuncao(), b.getLinha());
@@ -1165,8 +1778,8 @@ public class Parser {
                 } else {
                     throw new JaDeclaradoError(validacao.getLinha(), validacao.getNome());
                 }
-            } else {
-                if (this.funcaoVarsEscopo != null) {
+            }  else {
+                     if (this.funcaoVarsEscopo != null) {
                     if (!this.paramsEscopoFuncao.contains(b.getNome())) {
                         return true;
                     } else {
@@ -1217,12 +1830,16 @@ public class Parser {
         }
         }
 
-        public void analiseRepeat(Token param) throws ParamRepeatError {
+        public void analiseRepeat(Token param) throws ParamRepeatError, JaDeclaradoError {
             if (this.funcaoVarsEscopo == null){
                 funcaoVarsEscopo = this.funcaoAtual;
             }
             if (paramsNames.size() > 0) {
                 if (!paramsNames.contains(param.getNome())) {
+                    Token ns = this.matrizDeSimbolos.buscarVariavel(param.getNome());
+                    if (ns != null){
+                        throw new JaDeclaradoError(param.getLinha(), param.getNome());
+                    }
                     paramsNames.add(param.getNome());
                     paramsEscopoFuncao.add(param.getNome());
                 } else {

@@ -10,6 +10,7 @@ public class Token {
     private Escopo escopo;
     private String retornoFuncao;
     private ArrayList<String> parametros;
+    ArrayList<String> nomeParams;
     private boolean declarada;
 
     public Token(String nome, String lexema, int linha, String valor, int linhaMatriz, int colunaMatriz) {
@@ -23,6 +24,7 @@ public class Token {
         this.retornoFuncao = null;
         this.parametros = null;
         this.declarada = false;
+        this.nomeParams = new ArrayList<>();
 
     }
 
