@@ -1,66 +1,155 @@
-t1 = 1 + 1
-a = t1
-x = false
-b = 10
-bonita = 9
-bomdia = 10
-LCALL _Print bomdia
-goto + _func0
-main : 
-beginfunc:
 _while0: 
-t1 = true
-if (true) goto _stat0
-ifnot (true) goto _stat1
+t0 = c > 0
+if (t0) goto _stat0
+ifnot (t0) goto _stat1
 _stat0:
-j = 1
+goto _stat1:
+goto _while0
+_stat1:
+t1 = 7 * 5
+t2 = 77 / 33
+t3 = 3 * 4
+t4 = 1 + ( -t3 )
+t5 = t4 + ( -5 )
+t6 = t5 + 6
+t7 = t6 + 5
+t8 = t7 + a
+t9 = t8 + 4
+t10 = t9 + ( -t2 )
+t11 = t10 + ( -10 )
+t12 = t11 + t1
+a = t12
+a = 20
+t1 = 20 * 30
+t2 = 10 + t1
+ab = t2
 _while1: 
-t0 = b > a
+t0 = ab > a
 if (t0) goto _stat2
 ifnot (t0) goto _stat3
 _stat2:
-a = a
-param b
-param x
-b =  call main,2
-v = 10
-_if0: 
-t0 = a == b
+_while2: 
+t0 = a > ab
 if (t0) goto _stat4
 ifnot (t0) goto _stat5
 _stat4:
-_if1: 
-t0 = a == b
+_if0: 
+t0 = a > ab
 if (t0) goto _stat6
 ifnot (t0) goto _stat7
 _stat6:
-q = 90
-LCALL _Print q
-q = 11
-goto _generic1
+t1 = a + 1
+a = t1
+goto _generic0
+goto _generic0
 _stat7:
-aaaaaa = true
-LCALL _Print aaaaaa
+t1 = a + 2
+a = t1
 goto next
-_generic1: 
-_stat5:
 _generic0: 
-goto _while1
+_stat5:
+goto _while2
 _stat3:
-goto _while0
-_stat1:
-_if2: 
-t0 = a == b
+csulo = 878787
+goto _while1
+_if1: 
+t0 = a > ab
 if (t0) goto _stat8
 ifnot (t0) goto _stat9
 _stat8:
-j = 10
+a = 10
 _stat9:
+_generic1: 
+t1 = 7 * 5
+t2 = 3 * 2
+t3 = 3 * 4
+t4 = 1 + t3
+t5 = t4 + 6
+t6 = t5 + 5
+t7 = t6 + 4
+t8 = t7 + ( -t2 )
+t9 = t8 + t1
+acg = t9
+b = true
+b = false
+c = 10
+ab = 80
+b = false
+goto + _func0
+boba : 
+beginfunc:
+_while3: 
+t0 = ha > a
+t1 = 3 != a
+t2 = t1 and t0
+if (t2) goto _stat10
+ifnot (t2) goto _stat11
+_stat10:
+z = true
+z = false
+goto _while3
+_stat11:
+_if2: 
+t0 = ha > a
+if (t0) goto _stat12
+ifnot (t0) goto _stat13
+_stat12:
+t1 = 10 + 5
+z = t1
+_if3: 
+t0 = a > ha
+if (t0) goto _stat14
+ifnot (t0) goto _stat15
+_stat14:
+asfsafsa = 10
+_if4: 
+t1 = b
+if (b) goto _stat16
+ifnot (b) goto _stat17
+_stat16:
+lasf = 99999
+goto _generic4
+_stat17:
+JJJJJJJJJJJ = 0000000
+_generic4: 
+goto _generic3
+_stat15:
+KKKKKKKKKK = 34324234
+_generic3: 
+goto _generic2
+_stat13:
+t1 = 90 + 90
+t2 = t1 + 50
+aqui = t2
 _generic2: 
-j = 50
-oi = true
-return oi;
-return oi;
+z = 4
 Endfunc
 _func0:
-j = 8
+z = 10
+goto + _func1
+holla : 
+beginfunc:
+rasgou = true
+babou = 9
+_while4: 
+t0 = ha < a
+if (t0) goto _stat18
+ifnot (t0) goto _stat19
+_stat18:
+upa = false
+goto _while4
+_stat19:
+LCALL _Print ha
+Endfunc
+_func1:
+babou = 9
+babou = 8
+param ab
+param b
+c =  call boba,2
+param ab
+param b
+c =  call holla,2
+param a
+param b
+ call boba,2

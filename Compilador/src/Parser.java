@@ -1144,6 +1144,17 @@ public class Parser {
                         throw new AritmeticError("Aritmetico", a.getLinha());
                     }
                     for (int i = 0; i < logica.size(); i++){
+                        boolean pare = true;
+                        while (pare){
+                            pare = false;
+                            for(String l : logica){
+                                if (l.equals("(") || l.equals(")")){
+                                    logica.remove(l);
+                                    pare = true;
+                                    break;
+                                }
+                            }
+                        }
                         if ( logica.size() == 3){
                             if (logica.size() == 3 && (logica.get(0).equals("(") && logica.get(2).equals(")"))){
                                 logica.remove(0);
@@ -1289,6 +1300,17 @@ public class Parser {
                         throw new AritmeticError("Aritmetico", a.getLinha());
                     }
                     for (int i = 0; i < logica.size(); i++){
+                        boolean pare = true;
+                        while (pare){
+                            pare = false;
+                            for(String l : logica){
+                                if (l.equals("(") || l.equals(")")){
+                                    logica.remove(l);
+                                    pare = true;
+                                    break;
+                                }
+                            }
+                        }
                         if (logica.get(i).equals("<") || logica.get(i).equals(">") || logica.get(i).equals(">=")
                                 || logica.get(i).equals("<=") || logica.get(i).equals("=")){
                             if (!isADigit(logica.get(i - 1).charAt(0))) {
